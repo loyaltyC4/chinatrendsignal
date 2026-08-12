@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from "react";
 
 // Lightweight canvas particle sphere — drops in place of shadcnspace's ParticleSphereAnimation
-export default function ParticleSphereAnimation() {
+export default function ParticleSphereAnimation({ dark = true }: { dark?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function ParticleSphereAnimation() {
         const a = Math.max(0.04, Math.min(0.9, (z0 + 1) / 2));
         ctx.beginPath();
         ctx.arc(x, y, 1.4 * scale, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(216,243,78,${a})`;
+        ctx.fillStyle = dark ? `rgba(216,243,78,${a})` : `rgba(22,163,74,${a})`;
         ctx.fill();
       }
       t += 1;
@@ -56,7 +56,7 @@ export default function ParticleSphereAnimation() {
     };
     draw();
     return () => { cancelAnimationFrame(raf); ro.disconnect(); };
-  }, []);
+  }, [dark]);
 
   return <canvas ref={canvasRef} className="w-full h-full" aria-hidden="true" />;
 }

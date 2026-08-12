@@ -7,9 +7,9 @@
   --color-mut: #5f6b60;
   --color-lime: #d8f34e;
   --color-grn: #16a34a;
-  --font-serif: "Playfair Display", Georgia, serif;
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-serif: "Playfair Display", Georgia, "Noto Serif SC", serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif, "Noto Sans SC", "PingFang SC", "Microsoft YaHei";
+  --font-mono: "JetBrains Mono", ui-monospace, monospace, "Noto Sans SC";
 }
 
 html { scroll-behavior: smooth; }

@@ -30,7 +30,8 @@ const orbits = [
   },
 ];
 
-export default function OrbitingCirclesGlobe() {
+export default function OrbitingCirclesGlobe({ dark = true }: { dark?: boolean }) {
+  const ring = dark ? "border-white/10" : "border-[#16a34a]/20";
   return (
     <div className="relative w-full h-[22rem] md:h-[34rem] overflow-hidden flex justify-center">
       <style>{`
@@ -41,7 +42,7 @@ export default function OrbitingCirclesGlobe() {
       `}</style>
       {/* Center particle globe */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 aspect-square pointer-events-none w-64 md:w-[36rem] z-10">
-        <ParticleSphereAnimation />
+        <ParticleSphereAnimation dark={dark} />
       </div>
       {/* Orbiting rings */}
       {orbits.map((orbit, index) => {
@@ -55,7 +56,7 @@ export default function OrbitingCirclesGlobe() {
         return (
           <div
             key={index}
-            className={`absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rounded-full border border-white/10 ${orbit.size}`}
+            className={`absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rounded-full border ${ring} ${orbit.size}`}
           >
             {allIcons.map((iconData, iconIndex) => (
               <div

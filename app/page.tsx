@@ -81,11 +81,11 @@ export default function Home() {
             <p className="mt-6 text-xs text-[#a3a89c]">By signing up, you agree to our <a className="text-[#7a8471] underline" href="#">Terms</a> and <a className="text-[#7a8471] underline" href="#">Privacy Policy</a>.</p>
           </div>
 
-          {/* orbit */}
-          <div className="mt-14 bg-gradient-to-b from-[#0e241a] to-[#0a1c13] px-6 sm:px-12 pt-12 text-center">
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-lime">One radar · seven sources</p>
-            <h2 className="mt-3 font-serif text-2xl sm:text-3xl font-semibold text-[#f0f5ea]">Every platform that matters in China commerce, in one orbit</h2>
-            <OrbitingCirclesGlobe />
+          {/* orbit — white band so the logos pop */}
+          <div className="mt-14 bg-white px-6 sm:px-12 pt-12 text-center">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-grn">One radar · seven sources</p>
+            <h2 className="mt-3 font-serif text-2xl sm:text-3xl font-semibold text-ink">Every platform that matters in China commerce, in one orbit</h2>
+            <OrbitingCirclesGlobe dark={false} />
           </div>
 
           {/* this week's pull */}
