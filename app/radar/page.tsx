@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import SignalFeed, { type Signal } from "@/components/signal-feed";
 
 export const metadata: Metadata = { title: "Radar — China Trend Signal" };
+
+const NAV = [
+  { label: "Radar", href: "/radar" },
+  { label: "Movers & Shakers", href: "/movers" },
+  { label: "Listing Studio", href: "/listing" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Home", href: "/" },
+];
 
 const KPIS = [
   { label: "Active signals", value: "47", delta: "+9 this week" },
@@ -33,8 +42,8 @@ export default function DashboardPage() {
             <span>chinatrendsignal</span>
           </div>
           <nav className="mt-8 flex flex-col gap-1 text-sm">
-            {["Radar", "Movers & Shakers", "Watchlist", "Suppliers", "Creators", "Reports", "Settings"].map((item, i) => (
-              <a key={item} href="#" className={`rounded-lg px-3 py-2 transition-colors ${i === 0 ? "bg-lime/10 font-medium text-lime" : "text-[#9dbf9f] hover:bg-white/5 hover:text-white"}`}>{item}</a>
+            {NAV.map((item, i) => (
+              <Link key={item.label} href={item.href} className={`rounded-lg px-3 py-2 transition-colors ${i === 0 ? "bg-lime/10 font-medium text-lime" : "text-[#9dbf9f] hover:bg-white/5 hover:text-white"}`}>{item.label}</Link>
             ))}
           </nav>
           <div className="mt-auto rounded-xl border border-white/10 bg-white/5 p-4">

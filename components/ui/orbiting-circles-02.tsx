@@ -31,7 +31,7 @@ const orbits = [
 ];
 
 export default function OrbitingCirclesGlobe({ dark = true }: { dark?: boolean }) {
-  const ring = dark ? "border-white/10" : "border-[#16a34a]/20";
+  const ring = dark ? "border-white/10" : "border-black/15";
   return (
     <div className="relative w-full h-[22rem] md:h-[34rem] overflow-hidden flex justify-center">
       <style>{`

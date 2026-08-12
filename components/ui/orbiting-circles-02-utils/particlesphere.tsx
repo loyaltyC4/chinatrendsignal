@@ -48,7 +48,7 @@ export default function ParticleSphereAnimation({ dark = true }: { dark?: boolea
         const a = Math.max(0.04, Math.min(0.9, (z0 + 1) / 2));
         ctx.beginPath();
         ctx.arc(x, y, 1.4 * scale, 0, Math.PI * 2);
-        ctx.fillStyle = dark ? `rgba(216,243,78,${a})` : `rgba(22,163,74,${a})`;
+        ctx.fillStyle = dark ? `rgba(216,243,78,${a})` : `rgba(26,26,26,${a})`;
         ctx.fill();
       }
       t += 1;
