@@ -31,7 +31,7 @@ const orbits = [
 ];
 
 export default function OrbitingCirclesGlobe({ dark = true }: { dark?: boolean }) {
-  const ring = dark ? "border-white/10" : "border-black/15";
+  const ring = dark ? "border-black/10" : "border-black/15";
   return (
     <div className="relative w-full h-[22rem] md:h-[34rem] overflow-hidden flex justify-center">
       <style>{`
@@ -68,7 +68,7 @@ export default function OrbitingCirclesGlobe({ dark = true }: { dark?: boolean }
                 } as React.CSSProperties}
               >
                 <div
-                  className="p-2.5 sm:p-3.5 border border-white/10 rounded-full bg-white -mt-8 relative z-10 shadow-lg"
+                  className="p-2.5 sm:p-3.5 border border-black/10 rounded-full bg-white -mt-8 relative z-10 shadow-lg"
                   style={{
                     "--counter-offset": `${-iconData.angle}deg`,
                     animation: `${counterAnim} ${orbit.duration}s linear infinite`,

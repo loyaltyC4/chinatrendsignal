@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-forest: #0d2b1f;
-  --color-ivory: #fdfcf8;
-  --color-ink: #10190f;
-  --color-mut: #5f6b60;
-  --color-lime: #d8f34e;
-  --color-grn: #16a34a;
+  /* Light theme: warm cream surfaces, cobalt accent */
+  --color-forest: #f4f1ea;          /* page background = warm cream */
+  --color-ivory: #fbf9f4;           /* card surface = light ivory */
+  --color-ink: #1a1b20;             /* text = near-black */
+  --color-mut: #6b6f78;             /* muted text */
+  --color-lime: #1d4ed8;            /* accent = cobalt blue (token name kept for compatibility) */
+  --color-grn: #1d4ed8;             /* accent alias */
   --font-serif: "Playfair Display", Georgia, "Noto Serif SC", serif;
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif, "Noto Sans SC", "PingFang SC", "Microsoft YaHei";
   --font-mono: "JetBrains Mono", ui-monospace, monospace, "Noto Sans SC";

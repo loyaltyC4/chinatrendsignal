@@ -16,11 +16,11 @@ const pull = [
 
 function Logo() {
   return (
-    <span className="flex items-center gap-2.5 font-semibold text-lg tracking-tight text-ivory">
+    <span className="flex items-center gap-2.5 font-semibold text-lg tracking-tight text-ink">
       <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-        <circle cx="13" cy="13" r="11" stroke="#d8f34e" strokeWidth="2.5" />
-        <circle cx="13" cy="13" r="5.5" stroke="#d8f34e" strokeWidth="2.5" />
-        <circle cx="13" cy="13" r="1.8" fill="#d8f34e" />
+        <circle cx="13" cy="13" r="11" stroke="#1d4ed8" strokeWidth="2.5" />
+        <circle cx="13" cy="13" r="5.5" stroke="#1d4ed8" strokeWidth="2.5" />
+        <circle cx="13" cy="13" r="1.8" fill="#1d4ed8" />
       </svg>
       chinatrendsignal
     </span>
@@ -39,10 +39,10 @@ export default function Home() {
         <nav className="hidden md:flex items-center gap-9 text-[15px] text-[#b9c9b3]">
           <a href="#how" className="hover:text-white transition-colors">How it works</a>
           <a href="#data" className="hover:text-white transition-colors">Live data</a>
-          <a href="/radar" className="hover:text-white transition-colors font-medium text-lime">Open the radar →</a>
+          <a href="/radar" className="hover:text-white transition-colors font-medium text-grn">Open the radar →</a>
           <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
         </nav>
-        <a href="/radar" className="rounded-xl bg-lime px-5 py-2.5 text-sm font-semibold text-[#12220a] hover:bg-[#e5fb70] transition-colors">Open the app</a>
+        <a href="/radar" className="rounded-xl bg-grn px-5 py-2.5 text-sm font-semibold text-[#12220a] hover:bg-[#1e40af] transition-colors">Open the app</a>
       </header>
 
       {/* hero card */}
@@ -90,31 +90,31 @@ export default function Home() {
           </div>
 
           {/* this week's pull */}
-          <div id="data" className="bg-gradient-to-b from-[#122f22] via-[#0b2117] to-[#0d1a12] px-6 sm:px-12 pb-16 pt-4 text-left">
+          <div id="data" className="bg-gradient-to-b from-[#1d4ed8] via-[#f4f1ea] to-[#1e3a8a] px-6 sm:px-12 pb-16 pt-4 text-left">
             <div className="flex flex-wrap items-baseline justify-between gap-2 mb-6">
-              <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-lime">This week&apos;s pull</h3>
-              <span className="font-mono text-[11px] text-[#8fae98]">DOUYIN / XHS / 1688 / XINGTU</span>
+              <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-grn">This week&apos;s pull</h3>
+              <span className="font-mono text-[11px] text-[#8a8f96]">DOUYIN / XHS / 1688 / XINGTU</span>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.12em] text-[#8fae98]">Douyin hot search — top items</p>
-                <ul className="text-[12.5px] text-[#d4e2cf]">
+              <div className="rounded-2xl border border-black/10 bg-black/5 p-5">
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.12em] text-[#8a8f96]">Douyin hot search — top items</p>
+                <ul className="text-[12.5px] text-[#3a3f47]">
                   {pull.map((r, i) => (
-                    <li key={i} className="flex justify-between gap-2.5 py-2 border-t border-dashed border-white/10 first:border-t-0">
-                      <span className="pr-2">{r.name}</span><b className="font-mono text-lime whitespace-nowrap">{r.val}</b>
+                    <li key={i} className="flex justify-between gap-2.5 py-2 border-t border-dashed border-black/10 first:border-t-0">
+                      <span className="pr-2">{r.name}</span><b className="font-mono text-grn whitespace-nowrap">{r.val}</b>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#8fae98]">XHS · pet supplies</p>
-                <p className="font-mono text-[26px] font-bold text-lime">4,760 saves</p>
-                <p className="mt-2 text-[12.5px] leading-relaxed text-[#b9cbb4]">Saves beating likes (6,882) on the top checklist post = bookmark-to-buy intent.</p>
+              <div className="rounded-2xl border border-black/10 bg-black/5 p-5">
+                <p className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#8a8f96]">XHS · pet supplies</p>
+                <p className="font-mono text-[26px] font-bold text-grn">4,760 saves</p>
+                <p className="mt-2 text-[12.5px] leading-relaxed text-[#5b6068]">Saves beating likes (6,882) on the top checklist post = bookmark-to-buy intent.</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#8fae98]">1688 · steam pet brush</p>
-                <p className="font-mono text-[26px] font-bold text-lime">¥2.52</p>
-                <p className="mt-2 text-[12.5px] leading-relaxed text-[#b9cbb4]">Wholesale unit. Sells US$18–28 on TikTok Shop. 60 competing offers indexed.</p>
+              <div className="rounded-2xl border border-black/10 bg-black/5 p-5">
+                <p className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#8a8f96]">1688 · steam pet brush</p>
+                <p className="font-mono text-[26px] font-bold text-grn">¥2.52</p>
+                <p className="mt-2 text-[12.5px] leading-relaxed text-[#5b6068]">Wholesale unit. Sells US$18–28 on TikTok Shop. 60 competing offers indexed.</p>
               </div>
             </div>
           </div>
@@ -123,19 +123,19 @@ export default function Home() {
 
       {/* how */}
       <section id="how" className="relative z-10 mx-auto max-w-6xl px-6 py-20">
-        <h2 className="max-w-[22ch] font-serif text-3xl sm:text-[2.9rem] font-bold leading-[1.1] text-ivory">Three checks before <em className="italic text-lime">anything</em> hits your inbox</h2>
-        <p className="mt-4 max-w-[58ch] text-[16.5px] leading-relaxed text-[#a9bda3]">No engagement proof, no supplier, no spread — no signal. Every alert carries all three.</p>
+        <h2 className="max-w-[22ch] font-serif text-3xl sm:text-[2.9rem] font-bold leading-[1.1] text-ink">Three checks before <em className="italic text-grn">anything</em> hits your inbox</h2>
+        <p className="mt-4 max-w-[58ch] text-[16.5px] leading-relaxed text-[#6b6f78]">No engagement proof, no supplier, no spread — no signal. Every alert carries all three.</p>
         <div className="mt-11 grid gap-4 md:grid-cols-3">
           {[
             { n: "CHECK 1 · DEMAND", t: "Demand is real", p: "We read saves-to-likes ratios on Xiaohongshu, not vanity views. Saves mean intent to buy.", f: "4,760", fs: "saves on this week's top post" },
             { n: "CHECK 2 · SUPPLY", t: "A factory makes it", p: "1688 and Taobao are checked for every candidate, including reverse image search from the viral photo.", f: "¥2.52", fs: "unit wholesale, this week's brush" },
             { n: "CHECK 3 · SPREAD", t: "The margin exists", p: "We compare against live TikTok Shop and Amazon prices. If the spread isn't there, you never see it.", f: "25–40×", fs: "gross spread, current window" },
           ].map((s) => (
-            <div key={s.n} className="rounded-2xl border border-white/10 bg-white/5 p-7 transition-all hover:-translate-y-1 hover:border-lime/30">
-              <p className="font-mono text-[11px] font-semibold tracking-[0.14em] text-lime">{s.n}</p>
-              <h3 className="mt-4 text-lg font-semibold text-ivory">{s.t}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[#a9bda3]">{s.p}</p>
-              <p className="mt-5 font-mono text-2xl font-bold text-ivory">{s.f}<span className="mt-1 block font-sans text-xs font-normal text-[#8fae98]">{s.fs}</span></p>
+            <div key={s.n} className="rounded-2xl border border-black/10 bg-black/5 p-7 transition-all hover:-translate-y-1 hover:border-grn/30">
+              <p className="font-mono text-[11px] font-semibold tracking-[0.14em] text-grn">{s.n}</p>
+              <h3 className="mt-4 text-lg font-semibold text-ink">{s.t}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[#6b6f78]">{s.p}</p>
+              <p className="mt-5 font-mono text-2xl font-bold text-ink">{s.f}<span className="mt-1 block font-sans text-xs font-normal text-[#8a8f96]">{s.fs}</span></p>
             </div>
           ))}
         </div>
@@ -143,8 +143,8 @@ export default function Home() {
 
       {/* pricing */}
       <section id="pricing" className="relative z-10 mx-auto max-w-6xl px-6 pb-20">
-        <h2 className="max-w-[22ch] font-serif text-3xl sm:text-[2.9rem] font-bold leading-[1.1] text-ivory">Pricing, in <em className="italic text-lime">plain AUD</em></h2>
-        <p className="mt-4 max-w-[58ch] text-[16.5px] text-[#a9bda3]">GST included. Cancel anytime, keep your exports. Free tier never expires.</p>
+        <h2 className="max-w-[22ch] font-serif text-3xl sm:text-[2.9rem] font-bold leading-[1.1] text-ink">Pricing, in <em className="italic text-grn">plain AUD</em></h2>
+        <p className="mt-4 max-w-[58ch] text-[16.5px] text-[#6b6f78]">GST included. Cancel anytime, keep your exports. Free tier never expires.</p>
         <div className="mt-11 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {tiers.map((t) => (
             <div key={t.name} className={`relative rounded-2xl bg-ivory p-7 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,.25)] ${t.hot ? "ring-2 ring-grn" : ""}`}>
@@ -162,18 +162,18 @@ export default function Home() {
 
       {/* final cta */}
       <section id="waitlist" className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 pb-20">
-        <div className="rounded-[28px] border border-lime/20 bg-gradient-to-br from-[#16381f] to-[#0b2117] px-6 py-16 text-center">
-          <h2 className="mx-auto max-w-[20ch] font-serif text-3xl sm:text-[2.9rem] font-bold leading-[1.1] text-white">The next brush is <em className="italic text-lime">already trending.</em></h2>
-          <p className="mx-auto mt-4 max-w-[46ch] text-[#a9bda3]">Paid tiers open at launch. The waitlist gets first access — and the sample report lands in your inbox today.</p>
+        <div className="rounded-[28px] border border-grn/20 bg-gradient-to-br from-[#1d4ed8] to-[#f4f1ea] px-6 py-16 text-center">
+          <h2 className="mx-auto max-w-[20ch] font-serif text-3xl sm:text-[2.9rem] font-bold leading-[1.1] text-white">The next brush is <em className="italic text-grn">already trending.</em></h2>
+          <p className="mx-auto mt-4 max-w-[46ch] text-[#6b6f78]">Paid tiers open at launch. The waitlist gets first access — and the sample report lands in your inbox today.</p>
           <form action="#" className="mx-auto mt-8 flex max-w-md flex-wrap justify-center gap-3">
             <input type="email" required placeholder="Enter email" aria-label="Email address"
-              className="min-w-[220px] flex-1 rounded-xl border border-white/20 bg-white/10 px-5 py-3.5 text-white placeholder:text-[#8fae98] focus:border-lime focus:outline-none focus:ring-4 focus:ring-lime/15" />
-            <button type="submit" className="rounded-xl bg-lime px-6 py-3.5 font-semibold text-[#12220a] transition-colors hover:bg-[#e5fb70]">Get first access</button>
+              className="min-w-[220px] flex-1 rounded-xl border border-white/20 bg-white/10 px-5 py-3.5 text-white placeholder:text-[#8a8f96] focus:border-lime focus:outline-none focus:ring-4 focus:ring-lime/15" />
+            <button type="submit" className="rounded-xl bg-grn px-6 py-3.5 font-semibold text-[#12220a] transition-colors hover:bg-[#1e40af]">Get first access</button>
           </form>
         </div>
       </section>
 
-      <footer className="relative z-10 mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-6 pb-12 font-mono text-[11.5px] text-[#7e947f]">
+      <footer className="relative z-10 mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-6 pb-12 font-mono text-[11.5px] text-[#8a8f96]">
         <span>chinatrendsignal · Sydney, AUS</span>
         <span>sources: {platforms.join(" / ")}</span>
       </footer>

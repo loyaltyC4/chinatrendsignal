@@ -20,48 +20,48 @@ const PLATFORMS = ["All", "Douyin", "Xiaohongshu", "1688", "Amazon M&S", "TikTok
 
 export default function MoversPage() {
   return (
-    <div className="min-h-screen bg-[#0a120e] font-sans text-[#eef2fa]">
+    <div className="min-h-screen bg-[#f4f1ea] font-sans text-[#1a1b20]">
       <AppNav active="Movers & Shakers" />
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-lime">Movers &amp; Shakers</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-grn">Movers &amp; Shakers</p>
             <h1 className="mt-2 font-serif text-2xl font-bold tracking-tight sm:text-3xl">What's gaining rank right now, on every platform</h1>
-            <p className="mt-1 max-w-[62ch] text-sm text-[#9dbf9f]">
-              The same momentum leaderboard, pulled across every platform we track. China platforms flag the origin; the Amazon Movers &amp; Shakers row is the <b className="text-ivory">crossover confirmation</b> — proof the trend just landed in the West.
+            <p className="mt-1 max-w-[62ch] text-sm text-[#6b6f78]">
+              The same momentum leaderboard, pulled across every platform we track. China platforms flag the origin; the Amazon Movers &amp; Shakers row is the <b className="text-ink">crossover confirmation</b> — proof the trend just landed in the West.
             </p>
           </div>
-          <span className="hidden items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 font-mono text-[11px] text-[#9dbf9f] sm:flex"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-grn" />Live</span>
+          <span className="hidden items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 font-mono text-[11px] text-[#6b6f78] sm:flex"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-grn" />Live</span>
         </div>
 
         {/* platform filter */}
         <div className="mt-7 flex flex-wrap gap-2">
           {PLATFORMS.map((p, i) => (
-            <button key={p} className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] transition-colors ${i === 0 ? "border-lime/40 bg-lime/10 text-lime" : "border-white/10 text-[#9dbf9f] hover:border-white/25 hover:text-white"}`}>{p}</button>
+            <button key={p} className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] transition-colors ${i === 0 ? "border-grn/40 bg-grn/10 text-grn" : "border-black/10 text-[#6b6f78] hover:border-white/25 hover:text-white"}`}>{p}</button>
           ))}
         </div>
 
         {/* movers table */}
-        <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-[#0e1613]">
-          <div className="grid grid-cols-[1.3fr_.8fr_1.6fr_.9fr] max-md:grid-cols-[1.2fr_.9fr_1fr] items-center gap-2 border-b border-white/10 px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-[#7e947f]">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-black/10 bg-[#fbf9f4]">
+          <div className="grid grid-cols-[1.3fr_.8fr_1.6fr_.9fr] max-md:grid-cols-[1.2fr_.9fr_1fr] items-center gap-2 border-b border-black/10 px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-[#8a8f96]">
             <span>Product</span><span>Platform</span><span className="max-md:hidden">Signal</span><span>Rank gain</span>
           </div>
           {MOVERS.map((m, i) => (
-            <div key={i} className={`grid grid-cols-[1.3fr_.8fr_1.6fr_.9fr] max-md:grid-cols-[1.2fr_.9fr_1fr] items-center gap-2 border-b border-white/5 px-5 py-4 last:border-b-0 transition-colors hover:bg-white/[.03] ${m.region === "US" ? "bg-lime/[.04]" : ""}`}>
+            <div key={i} className={`grid grid-cols-[1.3fr_.8fr_1.6fr_.9fr] max-md:grid-cols-[1.2fr_.9fr_1fr] items-center gap-2 border-b border-black/5 px-5 py-4 last:border-b-0 transition-colors hover:bg-black/[.03] ${m.region === "US" ? "bg-grn/[.04]" : ""}`}>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-ivory">{m.item}</p>
-                {m.region === "US" && <span className="mt-1 inline-block rounded border border-lime/40 bg-lime/10 px-1.5 py-px font-mono text-[9px] font-bold text-lime">CROSSED OVER</span>}
+                <p className="truncate text-sm font-medium text-ink">{m.item}</p>
+                {m.region === "US" && <span className="mt-1 inline-block rounded border border-grn/40 bg-grn/10 px-1.5 py-px font-mono text-[9px] font-bold text-grn">CROSSED OVER</span>}
               </div>
               <div>
-                <span className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-[#9dbf9f]">{m.platform}</span>
+                <span className="rounded border border-black/10 bg-black/5 px-1.5 py-0.5 font-mono text-[10px] text-[#6b6f78]">{m.platform}</span>
               </div>
-              <p className="truncate text-[12.5px] text-[#9dbf9f] max-md:hidden">{m.note}</p>
+              <p className="truncate text-[12.5px] text-[#6b6f78] max-md:hidden">{m.note}</p>
               <p className="font-mono text-[15px] font-bold text-grn">{m.gain}</p>
             </div>
           ))}
         </div>
 
-        <p className="mt-4 font-mono text-[11px] leading-relaxed text-[#7e947f]">
+        <p className="mt-4 font-mono text-[11px] leading-relaxed text-[#8a8f96]">
           Every row is a real rank-gain read from a live pull. China platforms (Douyin, XHS, 1688, Kuaishou, Taobao, Weibo) flag origin; Amazon Movers &amp; Shakers and TikTok Shop confirm Western crossover. Cost per refresh: ¥0.10–0.20 per platform, cached and shared across all subscribers.
         </p>
       </div>

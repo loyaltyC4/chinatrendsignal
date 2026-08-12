@@ -40,21 +40,21 @@ const TRUST = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-[#0a120e] font-sans text-[#eef2fa]">
+    <div className="min-h-screen bg-[#f4f1ea] font-sans text-[#1a1b20]">
       <AppNav active="Pricing" />
       <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
 
         <div className="text-center">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-lime">Pricing</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-grn">Pricing</p>
           <h1 className="mx-auto mt-4 max-w-[22ch] font-serif text-3xl font-bold tracking-tight sm:text-5xl">
-            Subscribe for the radar. <em className="italic text-lime">Credits</em> for the studio.
+            Subscribe for the radar. <em className="italic text-grn">Credits</em> for the studio.
           </h1>
-          <p className="mx-auto mt-4 max-w-[62ch] text-[16.5px] leading-relaxed text-[#a9bda3]">
+          <p className="mx-auto mt-4 max-w-[62ch] text-[16.5px] leading-relaxed text-[#6b6f78]">
             Two things, kept separate on purpose. A flat subscription keeps the radar on — read it all day, it never touches a credit. Credits are one-off packs for the heavy studio work, and they never expire. That's the whole model.
           </p>
         </div>
 
-        <p className="mt-14 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-[#7e947f]">Step 1 — the subscription (the radar)</p>
+        <p className="mt-14 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-[#8a8f96]">Step 1 — the subscription (the radar)</p>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {SUBS.map((t) => (
             <div key={t.name} className={`relative flex flex-col rounded-2xl bg-ivory p-6 transition-all hover:-translate-y-1 ${t.hot ? "ring-2 ring-grn" : ""}`}>
@@ -70,44 +70,44 @@ export default function PricingPage() {
           ))}
         </div>
 
-        <p className="mt-16 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-[#7e947f]">Step 2 — credit packs (the studio), only when you need them</p>
+        <p className="mt-16 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-[#8a8f96]">Step 2 — credit packs (the studio), only when you need them</p>
         <div className="mx-auto mt-6 grid max-w-3xl gap-5 sm:grid-cols-3">
           {PACKS.map((p) => (
-            <div key={p.name} className={`relative rounded-2xl border p-6 text-center transition-all hover:-translate-y-1 ${p.hot ? "border-lime/50 bg-lime/5" : "border-white/10 bg-white/[.03]"}`}>
-              {p.hot && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-lime px-3 py-0.5 font-mono text-[10px] font-bold text-[#12220a]">MOST POPULAR</span>}
-              <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#9dbf9f]">{p.name}</p>
-              <p className="mt-3 font-mono text-3xl font-bold text-lime">{p.credits}<span className="text-sm font-normal text-[#9dbf9f]"> cr</span></p>
-              <p className="mt-1 text-lg font-semibold text-ivory">{p.price} <span className="text-xs font-normal text-[#7e947f]">{p.per}</span></p>
-              <p className="mt-1 font-mono text-[10.5px] text-[#7e947f]">{p.per_cr}</p>
-              <p className="mt-2 text-[12px] text-[#9dbf9f]">{p.note}</p>
+            <div key={p.name} className={`relative rounded-2xl border p-6 text-center transition-all hover:-translate-y-1 ${p.hot ? "border-grn/50 bg-grn/5" : "border-black/10 bg-black/[.03]"}`}>
+              {p.hot && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-grn px-3 py-0.5 font-mono text-[10px] font-bold text-[#12220a]">MOST POPULAR</span>}
+              <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#6b6f78]">{p.name}</p>
+              <p className="mt-3 font-mono text-3xl font-bold text-grn">{p.credits}<span className="text-sm font-normal text-[#6b6f78]"> cr</span></p>
+              <p className="mt-1 text-lg font-semibold text-ink">{p.price} <span className="text-xs font-normal text-[#8a8f96]">{p.per}</span></p>
+              <p className="mt-1 font-mono text-[10.5px] text-[#8a8f96]">{p.per_cr}</p>
+              <p className="mt-2 text-[12px] text-[#6b6f78]">{p.note}</p>
             </div>
           ))}
         </div>
 
         <div className="mx-auto mt-14 max-w-2xl">
-          <h2 className="text-center font-serif text-2xl font-bold text-ivory">What a credit buys</h2>
-          <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[.03]">
+          <h2 className="text-center font-serif text-2xl font-bold text-ink">What a credit buys</h2>
+          <div className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-black/[.03]">
             {COSTS.map((c, i) => (
-              <div key={i} className="flex items-center justify-between border-b border-white/5 px-6 py-4 last:border-b-0">
-                <span className="text-sm text-[#d4e2cf]">{c.a}</span>
-                <span className="rounded-md border border-lime/25 bg-lime/10 px-2.5 py-1 font-mono text-[12px] font-bold text-lime">{c.c}</span>
+              <div key={i} className="flex items-center justify-between border-b border-black/5 px-6 py-4 last:border-b-0">
+                <span className="text-sm text-[#3a3f47]">{c.a}</span>
+                <span className="rounded-md border border-grn/25 bg-grn/10 px-2.5 py-1 font-mono text-[12px] font-bold text-grn">{c.c}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mt-16 rounded-2xl border border-lime/20 bg-gradient-to-br from-[#16381f] to-[#0b2117] p-8 sm:p-10">
-          <p className="text-center font-mono text-[10px] uppercase tracking-[0.16em] text-lime">Read this before you buy anywhere</p>
+        <div className="mt-16 rounded-2xl border border-grn/20 bg-gradient-to-br from-[#1d4ed8] to-[#f4f1ea] p-8 sm:p-10">
+          <p className="text-center font-mono text-[10px] uppercase tracking-[0.16em] text-grn">Read this before you buy anywhere</p>
           <h2 className="mx-auto mt-3 max-w-[24ch] text-center font-serif text-2xl font-bold text-white sm:text-3xl">How we're not the tools you've been burned by</h2>
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             {TRUST.map((t) => (
               <div key={t.t}>
-                <p className="flex items-center gap-2 font-semibold text-ivory"><span className="text-lime">✓</span>{t.t}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-[#a9bda3]">{t.d}</p>
+                <p className="flex items-center gap-2 font-semibold text-ink"><span className="text-grn">✓</span>{t.t}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-[#6b6f78]">{t.d}</p>
               </div>
             ))}
           </div>
-          <p className="mt-8 text-center font-mono text-[11px] leading-relaxed text-[#7e947f]">
+          <p className="mt-8 text-center font-mono text-[11px] leading-relaxed text-[#8a8f96]">
             You've had credits expire. You've been charged after canceling. You've watched a balance burn in a week.<br className="hidden sm:block" />
             We built the opposite, on purpose.
           </p>
@@ -120,9 +120,9 @@ export default function PricingPage() {
             ["What if the data layer is down?", "Your credits are untouched. Downtime never consumes balance, and failed calls are never billed."],
             ["GST?", "Prices include GST where it applies. ABN invoices from Stripe."],
           ].map(([q, a]) => (
-            <div key={q} className="rounded-xl border border-white/8 bg-white/[.03] p-5">
-              <p className="text-sm font-semibold text-ivory">{q}</p>
-              <p className="mt-1.5 text-sm text-[#9dbf9f]">{a}</p>
+            <div key={q} className="rounded-xl border border-black/8 bg-black/[.03] p-5">
+              <p className="text-sm font-semibold text-ink">{q}</p>
+              <p className="mt-1.5 text-sm text-[#6b6f78]">{a}</p>
             </div>
           ))}
         </div>
