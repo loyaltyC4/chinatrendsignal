@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AppNav from "@/components/app-nav";
 
 export const metadata: Metadata = { title: "Movers & Shakers — China Trend Signal" };
 
@@ -20,6 +21,7 @@ const PLATFORMS = ["All", "Douyin", "Xiaohongshu", "1688", "Amazon M&S", "TikTok
 export default function MoversPage() {
   return (
     <div className="min-h-screen bg-[#0a120e] font-sans text-[#eef2fa]">
+      <AppNav active="Movers & Shakers" />
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

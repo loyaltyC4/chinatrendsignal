@@ -37,10 +37,10 @@ export default function DashboardPage() {
       <div className="flex">
         {/* sidebar */}
         <aside className="sticky top-0 hidden h-screen w-60 flex-col border-r border-white/8 p-5 md:flex">
-          <div className="flex items-center gap-2.5 font-semibold tracking-tight">
+          <Link href="/" className="flex items-center gap-2.5 font-semibold tracking-tight hover:opacity-80 transition-opacity">
             <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true"><circle cx="13" cy="13" r="11" stroke="#d8f34e" strokeWidth="2.5"/><circle cx="13" cy="13" r="5.5" stroke="#d8f34e" strokeWidth="2.5"/><circle cx="13" cy="13" r="1.8" fill="#d8f34e"/></svg>
             <span>chinatrendsignal</span>
-          </div>
+          </Link>
           <nav className="mt-8 flex flex-col gap-1 text-sm">
             {NAV.map((item, i) => (
               <Link key={item.label} href={item.href} className={`rounded-lg px-3 py-2 transition-colors ${i === 0 ? "bg-lime/10 font-medium text-lime" : "text-[#9dbf9f] hover:bg-white/5 hover:text-white"}`}>{item.label}</Link>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AppNav from "@/components/app-nav";
 
 export const metadata: Metadata = {
   title: "Pricing — China Trend Signal",
@@ -40,6 +41,7 @@ const TRUST = [
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#0a120e] font-sans text-[#eef2fa]">
+      <AppNav active="Pricing" />
       <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
 
         <div className="text-center">

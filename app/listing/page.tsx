@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AppNav from "@/components/app-nav";
 
 export const metadata: Metadata = { title: "Listing Studio — China Trend Signal" };
 
@@ -8,6 +9,7 @@ const EN_TITLE = "MistSpray Pet Brush — Electric Steam Grooming Comb for Cats 
 export default function ListingStudioPage() {
   return (
     <div className="min-h-screen bg-[#0a120e] font-sans text-[#eef2fa]">
+      <AppNav active="Listing Studio" />
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
         {/* header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
