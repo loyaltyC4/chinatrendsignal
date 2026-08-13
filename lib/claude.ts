@@ -33,7 +33,7 @@ export async function enrichWithClaude(kind: AnalysisKind, context: ProductConte
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 1400,
+      max_tokens: 3000,
       temperature: 0.25,
       system: systemPrompt(kind),
       messages: [{ role: "user", content: JSON.stringify(context) }],
@@ -49,9 +49,19 @@ export async function enrichWithClaude(kind: AnalysisKind, context: ProductConte
     parsed = JSON.parse(cleaned) as Partial<EnrichmentResult>;
   } catch {
     const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
+    let end = cleaned.lastIndexOf("}");
     if (start < 0 || end <= start) throw new Error("Claude returned invalid JSON");
-    parsed = JSON.parse(cleaned.slice(start, end + 1)) as Partial<EnrichmentResult>;
+    let candidate = cleaned.slice(start, end + 1);
+    try {
+      parsed = JSON.parse(candidate) as Partial<EnrichmentResult>;
+    } catch {
+      // If Claude hit a token cap mid-string, close the structure safely enough for analysis fields.
+      candidate = candidate.replace(/,\s*$/, "");
+      const openBraces = (candidate.match(/\{/g) || []).length;
+      const closeBraces = (candidate.match(/\}/g) || []).length;
+      candidate += "}".repeat(Math.max(0, openBraces - closeBraces));
+      parsed = JSON.parse(candidate) as Partial<EnrichmentResult>;
+    }
   }
   return {
     kind,
