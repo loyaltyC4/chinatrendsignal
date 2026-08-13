@@ -2,6 +2,7 @@
 // Dashboard — signal feed. Data-product register: dense, terminal-clean, single accent.
 import React from "react";
 import Link from "next/link";
+import SupplierMatchButton from "@/components/supplier-match-button";
 
 export type Signal = {
   id: string;
@@ -46,7 +47,7 @@ function SignalRow({ s }: { s: Signal }) {
       {/* product */}
       <span className="min-w-0">
         <span className="block truncate text-sm font-medium text-[#1a1b20]">{s.product}</span>
-        <span className="mt-0.5 block truncate font-mono text-[11px] text-[#8a8f96]">{s.zh} · {s.niche}</span>
+        <span className="mt-0.5 flex items-center gap-2 truncate font-mono text-[11px] text-[#8a8f96]"><span className="truncate">{s.zh} · {s.niche}</span><SupplierMatchButton keyword={s.zh || s.product} /></span>
       </span>
       {/* stage */}
       <span className="flex items-center gap-1.5 font-mono text-[11px]" style={{ color: stageColor }}>
