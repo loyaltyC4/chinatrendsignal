@@ -1,7 +1,7 @@
 import type { AnalysisKind, EnrichmentResult, ProductContext } from "./analysis-types";
 
 const API_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5-20250929";
 
 function systemPrompt(kind: AnalysisKind) {
   const base = `You are China Trend Signal's product intelligence analyst. You are given public product, supplier, market, engagement, review, and creator data. Be commercially rigorous. Never invent sales, revenue, review counts, citations, or source facts. Clearly distinguish evidence from inference. Do not give legal, medical, or financial advice. Use concise Australian English. Return valid JSON only.`;

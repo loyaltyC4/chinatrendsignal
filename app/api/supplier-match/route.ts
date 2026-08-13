@@ -19,9 +19,14 @@ export async function POST(req: NextRequest) {
   }
   try {
     const debit = await debitCredits({ userId: body.userId, action: "supplier_match", reference: crypto.randomUUID() });
-    // Official JustOne endpoint from your enabled dashboard: Taobao reverse image search.
-    const url = `${BASE}/api/taobao/search-by-image/v1?token=${encodeURIComponent(token)}&imageUrl=${encodeURIComponent(body.imageUrl)}`;
-    const response = await fetch(url, { signal: AbortSignal.timeout(90000) });
+    // Official enabled endpoint: POST /api/taobao/item_search_img/v1 with imageUrl in JSON body.
+    const url = `${BASE}/api/taobao/item_search_img/v1?token=${encodeURIComponent(token)}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ imageUrl: body.imageUrl }),
+      signal: AbortSignal.timeout(90000),
+    });
     const payload = await response.json();
     if (payload.code !== 0) throw new Error(payload.message || "Supplier search failed");
     return NextResponse.json({ ok: true, source: "taobao/search-by-image", data: payload.data, credit: debit });
