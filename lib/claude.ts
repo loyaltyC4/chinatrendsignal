@@ -44,7 +44,15 @@ export async function enrichWithClaude(kind: AnalysisKind, context: ProductConte
   const text = payload?.content?.find((item: { type: string }) => item.type === "text")?.text;
   if (!text) throw new Error("Claude returned no text");
   const cleaned = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```$/i, "").trim();
-  const parsed = JSON.parse(cleaned) as Partial<EnrichmentResult>;
+  let parsed: Partial<EnrichmentResult>;
+  try {
+    parsed = JSON.parse(cleaned) as Partial<EnrichmentResult>;
+  } catch {
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start < 0 || end <= start) throw new Error("Claude returned invalid JSON");
+    parsed = JSON.parse(cleaned.slice(start, end + 1)) as Partial<EnrichmentResult>;
+  }
   return {
     kind,
     title: parsed.title || "AI analysis",
