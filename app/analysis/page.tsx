@@ -45,10 +45,10 @@ export default function AnalysisPage() {
         <div className="mt-5 grid gap-5 lg:grid-cols-[1.05fr_.95fr]">
           <AiAnalysisPanel context={product} />
           <section className="rounded-2xl border border-black/10 bg-ivory p-5">
-            <p className="font-mono text-[10px] uppercase tracking-[.12em] text-mut">Supplier with the photo</p>
-            <h2 className="mt-1 text-lg font-semibold text-ink">Find the exact factory from a viral frame</h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#4b5563]">Paste a public image URL from a Douyin/XHS post. We use Taobao reverse image search to locate the nearest supplier listings, then calculate the live margin.</p>
-            <form className="mt-4 flex gap-2"><input aria-label="Image URL" placeholder="https://… product image" className="min-w-0 flex-1 rounded-xl border border-black/15 bg-white px-3 py-2.5 text-sm text-ink placeholder:text-[#9ca3af]" /><button className="rounded-xl bg-grn px-4 py-2.5 text-sm font-semibold text-white">Match · 3 cr</button></form>
+            <p className="font-mono text-[10px] uppercase tracking-[.12em] text-mut">Supplier match</p>
+            <h2 className="mt-1 text-lg font-semibold text-ink">Find the exact factory for a viral product</h2>
+            <p className="mt-2 text-sm leading-relaxed text-[#4b5563]">Enter the product keyword from a Douyin/XHS post. We search Taobao and 1688 supplier listings, then calculate the live margin. Image-based reverse search activates when JustOne enables an image endpoint on this account.</p>
+            <form action="/api/supplier-match" method="post" className="mt-4 flex gap-2"><input name="keyword" aria-label="Product keyword" placeholder="pet brush" className="min-w-0 flex-1 rounded-xl border border-black/15 bg-white px-3 py-2.5 text-sm text-ink placeholder:text-[#9ca3af]" /><button className="rounded-xl bg-grn px-4 py-2.5 text-sm font-semibold text-white">Match · 3 cr</button></form>
             <div className="mt-5 rounded-xl bg-[#f4f1ea] p-4"><p className="font-mono text-[10px] uppercase tracking-[.1em] text-mut">Live match preview</p><p className="mt-2 text-sm font-medium text-ink">Steam-spray pet brush</p><p className="mt-1 text-sm text-mut">¥2.52 wholesale → A$39.95 suggested retail → 74.4× gross spread</p></div>
           </section>
         </div>

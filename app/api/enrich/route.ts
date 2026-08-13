@@ -23,7 +23,14 @@ export async function POST(req: NextRequest) {
   try {
     // Debit only after provider is confirmed configured. In setup mode this is never faked.
     const debit = await debitCredits({ userId: body.userId, action: body.kind, reference: crypto.randomUUID() });
-    const result = await enrichWithClaude(body.kind, body.context);
+    let result;
+    try {
+      result = await enrichWithClaude(body.kind, body.context);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not valid JSON")) {
+        result = await enrichWithClaude(body.kind, { ...body.context, name: `${body.context.name} — return minified JSON only, no markdown fences` });
+      } else throw error;
+    }
     return NextResponse.json({ ok: true, result, credit: debit });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Analysis failed" }, { status: 500 });

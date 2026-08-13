@@ -4,9 +4,10 @@ import { debitCredits } from "@/lib/credits";
 const BASE = "https://api.justoneapi.com";
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null) as { imageUrl?: string; userId?: string } | null;
-  if (!body?.imageUrl || !/^https?:\/\//.test(body.imageUrl)) {
-    return NextResponse.json({ error: "A publicly reachable image URL is required" }, { status: 400 });
+  const body = await req.json().catch(() => null) as { keyword?: string; userId?: string } | null;
+  const keyword = body?.keyword?.trim();
+  if (!keyword) {
+    return NextResponse.json({ error: "A product keyword is required" }, { status: 400 });
   }
   const token = process.env.JUSTONEAPI_TOKEN;
   if (!token) {
@@ -18,18 +19,14 @@ export async function POST(req: NextRequest) {
     }, { status: 503 });
   }
   try {
-    const debit = await debitCredits({ userId: body.userId, action: "supplier_match", reference: crypto.randomUUID() });
-    // Official enabled endpoint: POST /api/taobao/item_search_img/v1 with imageUrl in JSON body.
-    const url = `${BASE}/api/taobao/item_search_img/v1?token=${encodeURIComponent(token)}`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ imageUrl: body.imageUrl }),
-      signal: AbortSignal.timeout(90000),
-    });
-    const payload = await response.json();
-    if (payload.code !== 0) throw new Error(payload.message || "Supplier search failed");
-    return NextResponse.json({ ok: true, source: "taobao/search-by-image", data: payload.data, credit: debit });
+    const debit = await debitCredits({ userId: body?.userId, action: "supplier_match", reference: crypto.randomUUID() });
+    const [taobaoRes, wholesaleRes] = await Promise.all([
+      fetch(`${BASE}/api/taobao/search-item-list/v1?token=${encodeURIComponent(token)}&keyword=${encodeURIComponent(keyword)}&page=1`, { signal: AbortSignal.timeout(90000) }),
+      fetch(`${BASE}/api/1688/search-item-list/v1?token=${encodeURIComponent(token)}&keyword=${encodeURIComponent(keyword)}&page=1`, { signal: AbortSignal.timeout(90000) }),
+    ]);
+    const [taobao, wholesale] = await Promise.all([taobaoRes.json(), wholesaleRes.json()]);
+    if (taobao.code !== 0 && wholesale.code !== 0) throw new Error(taobao.message || wholesale.message || "Supplier search failed");
+    return NextResponse.json({ ok: true, keyword, data: { taobao: taobao.code === 0 ? taobao.data : null, wholesale1688: wholesale.code === 0 ? wholesale.data : null }, credit: debit });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Supplier match failed" }, { status: 500 });
   }

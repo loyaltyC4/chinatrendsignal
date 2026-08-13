@@ -43,7 +43,8 @@ export async function enrichWithClaude(kind: AnalysisKind, context: ProductConte
   const payload = await response.json();
   const text = payload?.content?.find((item: { type: string }) => item.type === "text")?.text;
   if (!text) throw new Error("Claude returned no text");
-  const parsed = JSON.parse(text) as Partial<EnrichmentResult>;
+  const cleaned = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```$/i, "").trim();
+  const parsed = JSON.parse(cleaned) as Partial<EnrichmentResult>;
   return {
     kind,
     title: parsed.title || "AI analysis",
