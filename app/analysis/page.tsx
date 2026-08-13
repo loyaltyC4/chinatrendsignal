@@ -1,7 +1,7 @@
 import AppNav from "@/components/app-nav";
 import AiAnalysisPanel from "@/components/ai-analysis-panel";
 
-const product = {
+const DEFAULT_PRODUCT = {
   id: "pet-brush-001",
   name: "Steam-spray pet brush",
   chineseName: "跨境手柄喷雾梳猫狗电动蒸汽喷雾刷按摩梳",
@@ -21,7 +21,19 @@ const product = {
   ],
 };
 
-export default function AnalysisPage() {
+export default async function AnalysisPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const q = await searchParams;
+  const product = q.product
+    ? {
+        ...DEFAULT_PRODUCT,
+        name: String(q.product),
+        chineseName: String(q.zh || DEFAULT_PRODUCT.chineseName),
+        category: String(q.niche || DEFAULT_PRODUCT.category),
+        supplier: { ...DEFAULT_PRODUCT.supplier, wholesaleCny: Number(q.wholesale) || DEFAULT_PRODUCT.supplier.wholesaleCny },
+        market: { ...DEFAULT_PRODUCT.market, retailAud: Number(q.retail) || DEFAULT_PRODUCT.market.retailAud },
+        signals: { ...DEFAULT_PRODUCT.signals, velocityPct: Number(q.velocity) || DEFAULT_PRODUCT.signals.velocityPct, intentScore: Number(q.intent) || DEFAULT_PRODUCT.signals.intentScore, stage: (q.stage as "Rising" | "Peaking" | "Fading") || DEFAULT_PRODUCT.signals.stage },
+      }
+    : DEFAULT_PRODUCT;
   return (
     <div className="min-h-screen bg-forest font-sans text-ink">
       <AppNav active="Analysis" />

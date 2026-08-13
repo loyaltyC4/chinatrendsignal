@@ -39,10 +39,10 @@ export default function Home() {
         <nav className="hidden md:flex items-center gap-9 text-[15px] text-[#b9c9b3]">
           <a href="#how" className="hover:text-white transition-colors">How it works</a>
           <a href="#data" className="hover:text-white transition-colors">Live data</a>
-          <a href="/radar" className="hover:text-white transition-colors font-medium text-grn">Open the radar →</a>
+          <a href="/dashboard" className="hover:text-white transition-colors font-medium text-grn">Open the app →</a>
           <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
         </nav>
-        <a href="/radar" className="rounded-xl bg-grn px-5 py-2.5 text-sm font-semibold text-[#12220a] hover:bg-[#1e40af] transition-colors">Open the app</a>
+        <a href="/dashboard" className="rounded-xl bg-grn px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1e40af] transition-colors">Open the app</a>
       </header>
 
       {/* hero card */}

@@ -2,9 +2,10 @@ import Link from "next/link";
 
 // Shared top nav for the product (app) pages — every page reachable from every page.
 const LINKS = [
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/radar", label: "Radar" },
   { href: "/analysis", label: "AI Analysis" },
-  { href: "/movers", label: "Movers & Shakers" },
+  { href: "/movers", label: "Movers" },
   { href: "/listing", label: "Listing Studio" },
   { href: "/pricing", label: "Pricing" },
 ];
@@ -25,7 +26,7 @@ export default function AppNav({ active }: { active: string }) {
             </Link>
           ))}
         </nav>
-        <Link href="/pricing" className="ml-3 hidden whitespace-nowrap rounded-xl bg-grn px-4 py-2 text-sm font-semibold text-[#12220a] transition-colors hover:bg-[#1e40af] sm:block">Get access</Link>
+        <Link href="/pricing" className="ml-3 hidden whitespace-nowrap rounded-xl bg-grn px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#1e40af] sm:block">Get access</Link>
       </div>
     </header>
   );

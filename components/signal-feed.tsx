@@ -1,6 +1,7 @@
 "use client";
 // Dashboard — signal feed. Data-product register: dense, terminal-clean, single accent.
 import React from "react";
+import Link from "next/link";
 
 export type Signal = {
   id: string;
@@ -39,8 +40,9 @@ function Bar({ v, color }: { v: number; color: string }) {
 function SignalRow({ s }: { s: Signal }) {
   const spread = (s.retailAud / (s.wholesaleCny * 0.213)) || 0; // ~CNY->AUD
   const stageColor = s.stage === "Rising" ? "#22c55e" : s.stage === "Peaking" ? "#f59e0b" : "#8a8f96";
+  const href = `/analysis?product=${encodeURIComponent(s.product)}&zh=${encodeURIComponent(s.zh)}&niche=${encodeURIComponent(s.niche)}&stage=${s.stage}&velocity=${s.velocityPct}&intent=${s.intent}&wholesale=${s.wholesaleCny}&retail=${s.retailAud}`;
   return (
-    <button className="grid w-full grid-cols-[1.6fr_.7fr_.9fr_.7fr_.9fr_.8fr] max-md:grid-cols-[1.4fr_.8fr_.9fr] items-center gap-2 border-b border-black/5 px-5 py-4 text-left transition-colors last:border-b-0 hover:bg-black/[.03]">
+    <Link href={href} className="grid w-full grid-cols-[1.6fr_.7fr_.9fr_.7fr_.9fr_.8fr] max-md:grid-cols-[1.4fr_.8fr_.9fr] items-center gap-2 border-b border-black/5 px-5 py-4 text-left transition-colors last:border-b-0 hover:bg-black/[.03]">
       {/* product */}
       <span className="min-w-0">
         <span className="block truncate text-sm font-medium text-[#1a1b20]">{s.product}</span>
@@ -68,6 +70,6 @@ function SignalRow({ s }: { s: Signal }) {
           <span key={src} className="rounded border border-black/10 bg-black/5 px-1.5 py-0.5 font-mono text-[9.5px] text-[#6b6f78]">{src}</span>
         ))}
       </span>
-    </button>
+    </Link>
   );
 }
