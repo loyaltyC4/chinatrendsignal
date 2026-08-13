@@ -1,0 +1,31 @@
+import { NextRequest, NextResponse } from "next/server";
+import { enrichWithClaude, isClaudeConfigured } from "@/lib/claude";
+import { debitCredits } from "@/lib/credits";
+import type { AnalysisKind, ProductContext } from "@/lib/analysis-types";
+
+const VALID = new Set<AnalysisKind>([
+  "signal_explanation", "niche_scorecard", "complaint_miner", "listing_copy", "creator_match", "weekly_report",
+]);
+
+export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => null) as { kind?: AnalysisKind; context?: ProductContext; userId?: string } | null;
+  if (!body?.kind || !VALID.has(body.kind) || !body.context?.name) {
+    return NextResponse.json({ error: "Expected kind and product context" }, { status: 400 });
+  }
+  if (!isClaudeConfigured()) {
+    return NextResponse.json({
+      setupRequired: true,
+      error: "AI analysis is not activated yet",
+      instructions: "Add ANTHROPIC_API_KEY in Vercel environment variables for Production and Preview.",
+      creditCost: (await import("@/lib/credits")).creditCost(body.kind),
+    }, { status: 503 });
+  }
+  try {
+    // Debit only after provider is confirmed configured. In setup mode this is never faked.
+    const debit = await debitCredits({ userId: body.userId, action: body.kind, reference: crypto.randomUUID() });
+    const result = await enrichWithClaude(body.kind, body.context);
+    return NextResponse.json({ ok: true, result, credit: debit });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Analysis failed" }, { status: 500 });
+  }
+}

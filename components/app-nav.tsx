@@ -3,6 +3,7 @@ import Link from "next/link";
 // Shared top nav for the product (app) pages — every page reachable from every page.
 const LINKS = [
   { href: "/radar", label: "Radar" },
+  { href: "/analysis", label: "AI Analysis" },
   { href: "/movers", label: "Movers & Shakers" },
   { href: "/listing", label: "Listing Studio" },
   { href: "/pricing", label: "Pricing" },
