@@ -7,6 +7,9 @@ const LINKS = [
   { href: "/analysis", label: "AI Analysis" },
   { href: "/movers", label: "Movers" },
   { href: "/listing", label: "Listing Studio" },
+  { href: "/reports", label: "Reports" },
+  { href: "/ask", label: "Ask" },
+  { href: "/tracker", label: "Tracker" },
   { href: "/pricing", label: "Pricing" },
 ];
 

@@ -33,6 +33,7 @@ const STAGES = [
       { name: "Weekly Report", href: "/reports", note: "Auto-generated niche intelligence, weekly", status: "Scaffold" },
       { name: "Ask the Radar", href: "/ask", note: "Plain-English analyst chat over your data", status: "Scaffold" },
       { name: "Outcome Tracker", href: "/tracker", note: "Did it work? Learns what converts for you", status: "Scaffold" },
+      { name: "Agency Briefs", href: "/agency", note: "White-label China-entry reports for clients", status: "Scaffold" },
     ],
   },
 ];
