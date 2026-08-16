@@ -16,10 +16,9 @@ import {
  * whatever time is left enriching the least-recently-enriched signals. The cache
  * converges over several nights instead of blowing the time and cost budget in one.
  *
- * FIELD MAPPING CAVEAT: the exact JSON shape of each JustOne endpoint is not
- * documented field-by-field, so the extractors below try the common key spellings
- * and fall back gracefully. Every item's untouched payload is stored in signals.raw,
- * so once we've seen real responses we can tighten the mapping without re-fetching.
+ * FIELD MAPPING: parsers below are written against response shapes read off live
+ * JustOne calls on 16 Aug 2026, not guessed. Each row's untouched payload is still
+ * stored in signals.raw so a shape change can be diagnosed without re-fetching.
  */
 
 const DISCOVERY_CATEGORIES: Array<{ contentType: string; niche: string }> = [
@@ -53,54 +52,14 @@ export type IngestReport = {
   endpoints: EndpointResult[];
 };
 
-/* --------------------------- extraction helpers --------------------------- */
+/* --------------------------- extraction --------------------------- */
 
-function pickArray(data: any): any[] {
-  if (!data) return [];
-  if (Array.isArray(data)) return data;
-  for (const key of ["list", "items", "data", "records", "notes", "videos", "result", "aweme_list", "cards"]) {
-    const v = data[key];
-    if (Array.isArray(v)) return v;
-    if (v && typeof v === "object") {
-      for (const inner of ["list", "items", "data", "records"]) {
-        if (Array.isArray(v[inner])) return v[inner];
-      }
-    }
-  }
-  return [];
-}
-
-function firstString(obj: any, keys: string[]): string | null {
-  for (const k of keys) {
-    const v = k.split(".").reduce((acc, part) => (acc == null ? acc : acc[part]), obj);
-    if (typeof v === "string" && v.trim()) return v.trim();
-  }
-  return null;
-}
-
-function firstNumber(obj: any, keys: string[]): number | null {
-  for (const k of keys) {
-    const v = k.split(".").reduce((acc, part) => (acc == null ? acc : acc[part]), obj);
-    if (typeof v === "number" && Number.isFinite(v)) return v;
-    if (typeof v === "string" && /^\d+(\.\d+)?$/.test(v)) return Number(v);
-  }
-  return null;
-}
-
-const TITLE_KEYS = ["title", "desc", "display_title", "content", "text", "name", "note_title", "aweme_title", "word", "sentence", "subject"];
-const URL_KEYS = ["url", "share_url", "note_url", "link", "detail_url", "share_info.share_url"];
-const IMAGE_KEYS = ["cover", "image", "pic", "cover_url", "image_url", "video.cover.url_list.0", "images_list.0.url"];
-
-/** Stable identity so the same product on the same platform dedupes across runs. */
-function fingerprint(platform: string, title: string) {
-  const norm = title
-    .toLowerCase()
-    .replace(/[\s　]+/g, " ")
-    .replace(/[!-/:-@[-`{-~，。！？、；：""''（）【】]/g, "")
-    .trim()
-    .slice(0, 120);
-  return `${platform}:${norm}`;
-}
+/**
+ * Per-endpoint parsers. An earlier generic "find the first array" heuristic failed
+ * in production against real payloads: the 1688 response carries an EMPTY top-level
+ * `result: []` alongside the real rows at `data.OFFER.items`, so the guesser
+ * confidently returned zero. Shapes below were read off live responses on 16 Aug 2026.
+ */
 
 type Extracted = {
   title: string;
@@ -110,34 +69,147 @@ type Extracted = {
   saves: number | null;
   comments: number | null;
   shares: number | null;
+  engagement: number | null; // used when a platform gives a composite score, not components
+  trend: string | null;
   raw: any;
 };
 
-function extractItem(item: any): Extracted | null {
-  const title = firstString(item, TITLE_KEYS);
-  if (!title || title.length < 2) return null;
-  return {
-    title,
-    sourceUrl: firstString(item, URL_KEYS),
-    imageUrl: firstString(item, IMAGE_KEYS),
-    likes: firstNumber(item, ["digg_count", "like_count", "likedCount", "likes", "liked_count", "statistics.digg_count", "interact_info.liked_count"]),
-    saves: firstNumber(item, ["collect_count", "collectedCount", "collects", "collected_count", "favorite_count", "interact_info.collected_count"]),
-    comments: firstNumber(item, ["comment_count", "commentCount", "comments", "statistics.comment_count", "interact_info.comment_count"]),
-    shares: firstNumber(item, ["share_count", "shareCount", "shares", "statistics.share_count", "interact_info.shared_count"]),
-    raw: item,
-  };
-}
-
-/** Pull the first plausible CNY price out of a 1688 search item. */
-function extractPriceCny(item: any): number | null {
-  const n = firstNumber(item, ["price", "priceInfo.price", "unitPrice", "sale_price", "wholesalePrice", "priceRange.0.price", "quantityPrices.0.price"]);
-  if (n != null && n > 0 && n < 100000) return n;
-  const s = firstString(item, ["price", "priceInfo.price", "showPrice"]);
-  if (s) {
-    const m = s.match(/(\d+(?:\.\d+)?)/);
-    if (m) return Number(m[1]);
+const num = (v: any): number | null => {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const t = v.trim();
+    if (/^\d+(\.\d+)?$/.test(t)) return Number(t);
+    // Chinese compact counts: 918.6w = 9,186,000; 12.3k
+    const m = t.match(/^(\d+(?:\.\d+)?)\s*([wk万千])$/i);
+    if (m) {
+      const mult = /[w万]/i.test(m[2]) ? 10_000 : 1_000;
+      return Math.round(Number(m[1]) * mult);
+    }
   }
   return null;
+};
+
+/** XHS hot list: data.items[] of { rank, title, url, item_id, hot, hot_value, trend } */
+export function parseXhsHotList(data: any): Extracted[] {
+  const items = Array.isArray(data?.items) ? data.items : [];
+  return items
+    .map((it: any): Extracted | null => {
+      const title = typeof it?.title === "string" ? it.title.trim() : "";
+      if (!title) return null;
+      return {
+        title,
+        sourceUrl: it.url ?? null,
+        imageUrl: null,
+        // The hot list exposes a composite heat score, not like/save components.
+        // Recording it as engagement is honest; inventing components would not be.
+        likes: null, saves: null, comments: null, shares: null,
+        engagement: num(it.hot_value) ?? num(it.hot),
+        trend: typeof it.trend === "string" ? it.trend : null,
+        raw: it,
+      };
+    })
+    .filter(Boolean) as Extracted[];
+}
+
+/** Douyin hot search: data.content_list[] with counts as strings under attribute_datas */
+export function parseDouyinHotSearch(data: any): Extracted[] {
+  const list = Array.isArray(data?.content_list) ? data.content_list : [];
+  return list
+    .map((it: any): Extracted | null => {
+      const a = it?.attribute_datas ?? {};
+      const title = typeof a.item_title === "string" ? a.item_title.trim() : "";
+      if (!title) return null;
+      return {
+        title,
+        sourceUrl: it.id ? `https://www.douyin.com/video/${it.id}` : null,
+        imageUrl: a.cover_image_uri ? `https://p3-sign.douyinpic.com/${a.cover_image_uri}` : null,
+        likes: num(a.like_cnt_all),
+        saves: null, // Douyin does not expose a save/collect count here.
+        comments: num(a.comment_cnt_all),
+        shares: num(a.share_cnt_all),
+        engagement: num(a.interact_cnt),
+        trend: null,
+        raw: it,
+      };
+    })
+    .filter(Boolean) as Extracted[];
+}
+
+/** 1688 search: data.data.OFFER.items[] where each row's payload sits under .data */
+export function parse1688Items(data: any): any[] {
+  const items = data?.data?.OFFER?.items;
+  if (!Array.isArray(items)) return [];
+  return items.map((i: any) => i?.data ?? i).filter(Boolean);
+}
+
+/**
+ * Recursively find the most plausible unit price in a 1688 offer. The offer payload
+ * nests price under several different keys depending on listing type, so rather than
+ * hardcode one path we collect every price-ish numeric and take the median.
+ */
+export function findPrices(node: any, depth = 0, out: number[] = []): number[] {
+  if (!node || depth > 5) return out;
+  if (Array.isArray(node)) {
+    for (const v of node.slice(0, 20)) findPrices(v, depth + 1, out);
+    return out;
+  }
+  if (typeof node === "object") {
+    for (const [k, v] of Object.entries(node)) {
+      if (/price/i.test(k) && !/origin|market|list|max|strike/i.test(k)) {
+        const n = num(v);
+        if (n != null && n > 0.05 && n < 100_000) out.push(n);
+      }
+      if (v && typeof v === "object") findPrices(v, depth + 1, out);
+    }
+  }
+  return out;
+}
+
+export function findFirstString(node: any, pattern: RegExp, depth = 0): string | null {
+  if (!node || depth > 4) return null;
+  if (Array.isArray(node)) {
+    for (const v of node.slice(0, 20)) {
+      const r = findFirstString(v, pattern, depth + 1);
+      if (r) return r;
+    }
+    return null;
+  }
+  if (typeof node === "object") {
+    for (const [k, v] of Object.entries(node)) {
+      if (pattern.test(k) && typeof v === "string" && v.trim()) return v.trim();
+    }
+    for (const v of Object.values(node)) {
+      if (v && typeof v === "object") {
+        const r = findFirstString(v, pattern, depth + 1);
+        if (r) return r;
+      }
+    }
+  }
+  return null;
+}
+
+/** Stable identity so the same item on the same platform dedupes across runs. */
+function fingerprint(platform: string, title: string) {
+  const norm = title
+    .toLowerCase()
+    .replace(/[\s　]+/g, " ")
+    .replace(/[!-\/:-@\[-`{-~，。！？、；：""''（）【】#]/g, "")
+    .trim()
+    .slice(0, 120);
+  return `${platform}:${norm}`;
+}
+
+/**
+ * Douyin titles are full video captions with hashtags, which make terrible 1688
+ * queries. Strip hashtags and punctuation and keep a short head phrase.
+ */
+function searchTermFor(title: string) {
+  return title
+    .replace(/#[^\s#]+/g, " ")
+    .replace(/[!-\/:-@\[-`{-~，。！？、；：""''（）【】]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 20);
 }
 
 /* ------------------------------- the run ------------------------------- */
@@ -179,7 +251,7 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
     if (canCall()) {
       callsMade++;
       const r = await xhsHotList();
-      const items = r.ok ? pickArray(r.data) : [];
+      const items = r.ok ? parseXhsHotList(r.data) : [];
       note("XHS hot list", r, items.length);
       if (r.ok) {
         const res = await persist(items, "xiaohongshu", null);
@@ -198,7 +270,7 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
       }
       callsMade++;
       const r = await douyinHotSearch({ contentType: cat.contentType });
-      const items = r.ok ? pickArray(r.data) : [];
+      const items = r.ok ? parseDouyinHotSearch(r.data) : [];
       note(`Douyin hot search · ${cat.contentType}`, r, items.length);
       if (r.ok) {
         const res = await persist(items, "douyin", cat.niche);
@@ -224,19 +296,19 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
       for (const sig of queue ?? []) {
         if (!canCall()) break;
         callsMade++;
-        const r = await wholesaleSearch(sig.title.slice(0, 40));
-        const items = r.ok ? pickArray(r.data) : [];
-        note(`1688 supplier · ${sig.title.slice(0, 20)}`, r, items.length);
+        const r = await wholesaleSearch(searchTermFor(sig.title));
+        const offers = r.ok ? parse1688Items(r.data) : [];
+        note(`1688 supplier · ${sig.title.slice(0, 20)}`, r, offers.length);
 
         if (r.ok) {
-          const prices = items.map(extractPriceCny).filter((p): p is number => p != null).sort((a, b) => a - b);
+          const prices = offers.flatMap((o) => findPrices(o)).sort((a, b) => a - b);
           // Median resists the ¥0.01 bait listings that skew a straight minimum.
           const median = prices.length ? prices[Math.floor(prices.length / 2)] : null;
           await db
             .from("signals")
             .update({
               wholesale_cny: median,
-              supplier_url: firstString(items[0] ?? {}, URL_KEYS),
+              supplier_url: offers.length ? findFirstString(offers[0], /url|link|detail/i) : null,
               supplier_checked_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
@@ -288,14 +360,12 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
   }
 }
 
-async function persist(items: any[], platform: string, niche: string | null) {
+async function persist(items: Extracted[], platform: string, niche: string | null) {
   const db = supabaseAdmin();
   let inserted = 0;
   let updated = 0;
 
-  for (const raw of items.slice(0, 30)) {
-    const item = extractItem(raw);
-    if (!item) continue;
+  for (const item of items.slice(0, 30)) {
     const { data, error } = await db.rpc("record_signal", {
       p_fingerprint: fingerprint(platform, item.title),
       p_platform: platform,
@@ -303,7 +373,10 @@ async function persist(items: any[], platform: string, niche: string | null) {
       p_niche: niche,
       p_source_url: item.sourceUrl,
       p_image_url: item.imageUrl,
-      p_likes: item.likes,
+      // When a platform gives only a composite heat score (XHS hot list), record it
+      // in `likes` so engagement_total is non-zero and velocity can be computed.
+      // Fabricating a like/save split we were never given would be worse.
+      p_likes: item.likes ?? item.engagement,
       p_saves: item.saves,
       p_comments: item.comments,
       p_shares: item.shares,
@@ -344,6 +417,15 @@ export function describeShape(data: any, depth = 0): any {
   return typeof data;
 }
 
+function countFor(label: string, data: any): number {
+  if (label.includes("XHS hot list")) return parseXhsHotList(data).length;
+  if (label.includes("Douyin")) return parseDouyinHotSearch(data).length;
+  if (label.includes("1688")) return parse1688Items(data).length;
+  if (label.includes("XHS note")) return Array.isArray(data?.items) ? data.items.length : 0;
+  if (label.includes("Taobao")) return parse1688Items(data).length;
+  return 0;
+}
+
 export async function probeShapes(): Promise<any[]> {
   const probes: Array<[string, () => Promise<JustOneResult<any>>]> = [
     ["XHS hot list", () => xhsHotList()],
@@ -359,7 +441,7 @@ export async function probeShapes(): Promise<any[]> {
       ok: r.ok,
       code: r.code,
       message: r.ok ? undefined : (r as any).message,
-      extractedByCurrentParser: r.ok ? pickArray(r.data).length : 0,
+      extractedByCurrentParser: r.ok ? countFor(label, r.data) : 0,
       shape: r.ok ? describeShape(r.data) : null,
     });
   }
@@ -390,7 +472,7 @@ export async function probeEndpoints(): Promise<EndpointResult[]> {
       code: r.code,
       message: r.ok ? undefined : r.message,
       ms: r.ms,
-      items: r.ok ? pickArray(r.data).length : undefined,
+      items: r.ok ? countFor(label, r.data) : undefined,
     });
     if (!r.ok && (r.code === 601 || r.code === 100)) break; // no point continuing
   }
