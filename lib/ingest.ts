@@ -54,6 +54,8 @@ const XHS_KEYWORDS: Array<{ keyword: string; niche: string }> = [
  * in one 60s function, so we take a different window each day and let coverage build
  * across the week rather than truncating the same prefix every night.
  */
+// Measured latency, 16 Aug 2026: XHS note search 10-12s per call, Douyin 1-2s.
+// The window sizes below are set from those numbers, not guessed.
 function rotate<T>(arr: T[], take: number): T[] {
   const day = Math.floor(Date.now() / 86_400_000);
   const start = (day * take) % arr.length;
@@ -308,8 +310,9 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
   try {
     /* ---- Stage A: discovery (product-constrained sources) ---- */
 
-    for (const kw of rotate(XHS_KEYWORDS, 3)) {
-      if (!canCall()) { stoppedEarly = stoppedEarly || "Budget exhausted during XHS discovery"; break; }
+    for (const kw of rotate(XHS_KEYWORDS, 2)) {
+      // Reserve headroom so a slow XHS stage cannot starve Douyin completely.
+      if (callsMade >= maxCalls || timeLeft() < 20_000) { stoppedEarly = stoppedEarly || "Budget exhausted during XHS discovery"; break; }
       callsMade++;
       const r = await xhsNoteSearch(kw.keyword);
       const items = r.ok ? parseXhsNotes(r.data) : [];
