@@ -1,36 +1,31 @@
 "use client";
 
-import Image from "next/image";
 import { LogoMarquee, type LogoMarqueeItem } from "@/components/ui/logo-marquee";
+import { PLATFORM_LOGOS } from "@/lib/platform-logos";
 
 /**
  * The seven sources, as a single marquee.
  *
- * Bidcheck used a province/category browse grid here. There is no geographic
- * dimension to this product, so the slot becomes platform coverage instead.
+ * Bidcheck used a province and category browse grid in this slot. There is no
+ * geographic dimension to this product, so the slot becomes platform coverage.
  *
- * Logos only, no category captions underneath. One marquee on the page, no more.
+ * Logos only, with no category captions underneath, and exactly one marquee on
+ * the page. Plain <img> rather than next/image because a data URI needs no
+ * optimisation pass and the optimiser would only add a round trip.
  */
-const SOURCES: Array<{ id: string; label: string; src: string }> = [
-  { id: "douyin", label: "Douyin", src: "/logos/douyin.com.png" },
-  { id: "xhs", label: "Xiaohongshu", src: "/logos/xiaohongshu.com.png" },
-  { id: "1688", label: "1688", src: "/logos/1688.com.png" },
-  { id: "taobao", label: "Taobao", src: "/logos/taobao.com.png" },
-  { id: "alibaba", label: "Alibaba", src: "/logos/alibaba.com.png" },
-  { id: "tiktok", label: "TikTok Shop", src: "/logos/tiktok.com.png" },
-  { id: "wechat", label: "WeChat", src: "/logos/wechat.com.png" },
-];
-
-const ITEMS: LogoMarqueeItem[] = SOURCES.map((s) => ({
-  id: s.id,
-  label: s.label,
+const ITEMS: LogoMarqueeItem[] = PLATFORM_LOGOS.map((l) => ({
+  id: l.id,
+  label: l.label,
   mark: (
-    <Image
-      src={s.src}
-      alt={s.label}
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={l.src}
+      alt={l.label}
       width={30}
       height={30}
-      className="h-[30px] w-[30px] object-contain opacity-60 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+      loading="lazy"
+      decoding="async"
+      className="h-[30px] w-[30px] object-contain opacity-55 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
     />
   ),
 }));
