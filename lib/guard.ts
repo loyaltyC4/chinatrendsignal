@@ -1,45 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isServiceRoleConfigured, supabaseAdmin } from "@/lib/supabase/server";
 
 /**
- * Stopgap abuse guard for the paid-upstream routes (Claude + JustOne).
+ * Abuse guard for the paid-upstream routes (Claude + JustOne).
  *
- * WHY THIS EXISTS: /api/enrich and /api/supplier-match call metered third-party APIs
- * on our account. Until Supabase auth + the credit ledger are enforcing real per-user
- * quotas, these routes are open to anyone who finds the URL. This module is the
- * temporary floor, not the final answer.
+ * Two layers:
+ *  1. Same-origin enforcement — cheap, synchronous, blocks scripted callers that
+ *     do not send a browser Origin. Forgeable, so it is a filter and not a control.
+ *  2. Postgres-backed sliding window + a global daily ceiling.
  *
- * LIMITATIONS — be honest about these:
- *  - Counters live in module memory, so they are per-serverless-instance and reset on
- *    cold start. A distributed attacker hitting many instances gets more than `limit`.
- *  - Origin checks are trivially forged by a determined caller. They stop casual
- *    curl/script abuse and hotlinking, nothing more.
- * Both go away once `requireUser()` + ledger debits land in Phase 2.
+ * WHY POSTGRES: the first version of this file kept counters in module memory.
+ * That does not work on Vercel. Measured on production: 8 sequential requests
+ * were served by 5 distinct instances, so per-instance counters never accumulated
+ * and 12 calls against a limit of 10 produced zero 429s. The counters now live in
+ * one place every instance shares (see migration
+ * `durable_rate_limit_and_daily_budget`).
+ *
+ * Identity: authenticated calls are limited per user id, which is stable. Anonymous
+ * calls fall back to IP, which is weaker but only reachable on unauthenticated routes.
  */
 
-type Bucket = { count: number; resetAt: number };
-
-const buckets = new Map<string, Bucket>();
-const day = { stamp: today(), count: 0 };
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-/** Best-effort client IP from the proxy chain Vercel sets. */
 function clientIp(req: NextRequest) {
   const fwd = req.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]!.trim();
   return req.headers.get("x-real-ip") || "unknown";
 }
 
-/** Hosts allowed to call our own API routes from the browser. */
 function allowedHosts() {
   const hosts = new Set<string>([
     "localhost:3000",
     "127.0.0.1:3000",
     "chinatrendsignal.vercel.app",
   ]);
-  // The deployment's own hostname, plus an explicit override for the custom domain.
   if (process.env.VERCEL_URL) hosts.add(process.env.VERCEL_URL);
   if (process.env.VERCEL_BRANCH_URL) hosts.add(process.env.VERCEL_BRANCH_URL);
   const site = process.env.NEXT_PUBLIC_SITE_URL;
@@ -53,10 +45,7 @@ function allowedHosts() {
   return hosts;
 }
 
-/**
- * Reject requests that did not originate from our own pages.
- * Returns null when the request is acceptable.
- */
+/** Reject requests that did not originate from our own pages. */
 export function checkOrigin(req: NextRequest): NextResponse | null {
   const raw = req.headers.get("origin") || req.headers.get("referer");
   if (!raw) {
@@ -71,10 +60,8 @@ export function checkOrigin(req: NextRequest): NextResponse | null {
   } catch {
     return NextResponse.json({ error: "Malformed origin." }, { status: 403 });
   }
-  const allowed = allowedHosts();
-  // Allow any preview deployment on the project's own Vercel namespace.
   const isProjectPreview = /^chinatrendsignal-[a-z0-9-]+\.vercel\.app$/.test(host);
-  if (!allowed.has(host) && !isProjectPreview) {
+  if (!allowedHosts().has(host) && !isProjectPreview) {
     return NextResponse.json(
       { error: "This endpoint is only callable from the app." },
       { status: 403 },
@@ -84,74 +71,84 @@ export function checkOrigin(req: NextRequest): NextResponse | null {
 }
 
 /**
- * Sliding-window per-IP limiter. `route` namespaces the bucket so a user burning
- * their supplier-match allowance does not also lock them out of the analyst.
+ * Shared sliding-window limiter. Fails OPEN on a database error: a Supabase
+ * outage should degrade the limiter, not take the whole product down. The origin
+ * check and per-user auth still apply in that window.
  */
-export function rateLimit(
-  req: NextRequest,
+export async function rateLimit(
   route: string,
+  identity: string,
   limit: number,
-  windowMs: number,
-): NextResponse | null {
-  const now = Date.now();
-  const key = `${route}:${clientIp(req)}`;
-  const bucket = buckets.get(key);
-
-  if (!bucket || now > bucket.resetAt) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
-  } else if (bucket.count >= limit) {
-    const retryAfter = Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
-    return NextResponse.json(
-      { error: "Too many requests. Slow down and try again shortly.", retryAfter },
-      { status: 429, headers: { "retry-after": String(retryAfter) } },
-    );
-  } else {
-    bucket.count += 1;
+  windowSeconds: number,
+): Promise<NextResponse | null> {
+  if (!isServiceRoleConfigured()) return null;
+  try {
+    const { data, error } = await supabaseAdmin().rpc("consume_rate_limit", {
+      p_key: `${route}:${identity}`,
+      p_limit: limit,
+      p_window_seconds: windowSeconds,
+    });
+    if (error) return null;
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row && row.allowed === false) {
+      const resetAt = row.reset_at ? new Date(row.reset_at) : null;
+      const retryAfter = resetAt
+        ? Math.max(1, Math.ceil((resetAt.getTime() - Date.now()) / 1000))
+        : 3600;
+      return NextResponse.json(
+        {
+          error: "You've hit the limit for this action. It resets shortly.",
+          retryAfter,
+          resetAt: row.reset_at ?? null,
+        },
+        { status: 429, headers: { "retry-after": String(retryAfter) } },
+      );
+    }
+    return null;
+  } catch {
+    return null;
   }
-
-  // Opportunistic sweep so the map cannot grow without bound on a warm instance.
-  if (buckets.size > 5000) {
-    for (const [k, v] of buckets) if (now > v.resetAt) buckets.delete(k);
-  }
-  return null;
 }
 
-/**
- * Hard ceiling on total paid-upstream calls per day per instance. This is the
- * backstop that caps the worst case if the per-IP limiter is evaded by rotation.
- */
-export function dailyBudget(): NextResponse | null {
+/** Global ceiling across all users and instances. Also fails open. */
+export async function dailyBudget(): Promise<NextResponse | null> {
+  if (!isServiceRoleConfigured()) return null;
   const max = Number(process.env.MAX_DAILY_AI_CALLS || 300);
-  const stamp = today();
-  if (day.stamp !== stamp) {
-    day.stamp = stamp;
-    day.count = 0;
+  try {
+    const { data, error } = await supabaseAdmin().rpc("consume_daily_budget", { p_max: max });
+    if (error) return null;
+    if (data === false) {
+      return NextResponse.json(
+        {
+          error: "Daily capacity reached.",
+          detail: "The radar has hit its usage ceiling for today. It resets at midnight UTC.",
+        },
+        { status: 429 },
+      );
+    }
+    return null;
+  } catch {
+    return null;
   }
-  if (day.count >= max) {
-    return NextResponse.json(
-      {
-        error: "Daily capacity reached.",
-        detail: "The radar has hit its usage ceiling for today. It resets at midnight UTC.",
-      },
-      { status: 429 },
-    );
-  }
-  day.count += 1;
-  return null;
 }
 
-/**
- * One call to apply the whole stopgap policy to a paid route.
- * Returns a response to short-circuit with, or null to proceed.
- */
-export function guardPaidRoute(
+/** Apply the whole policy. Returns a response to short-circuit with, or null. */
+export async function guardPaidRoute(
   req: NextRequest,
   route: string,
-  opts: { limit: number; windowMs?: number; countsAgainstBudget?: boolean } ,
-): NextResponse | null {
-  return (
-    checkOrigin(req) ||
-    rateLimit(req, route, opts.limit, opts.windowMs ?? 60 * 60 * 1000) ||
-    (opts.countsAgainstBudget === false ? null : dailyBudget())
+  opts: { identity: string; limit: number; windowSeconds?: number; countsAgainstBudget?: boolean },
+): Promise<NextResponse | null> {
+  const origin = checkOrigin(req);
+  if (origin) return origin;
+
+  const limited = await rateLimit(
+    route,
+    opts.identity || clientIp(req),
+    opts.limit,
+    opts.windowSeconds ?? 3600,
   );
+  if (limited) return limited;
+
+  if (opts.countsAgainstBudget === false) return null;
+  return dailyBudget();
 }

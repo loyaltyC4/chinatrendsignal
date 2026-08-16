@@ -1,16 +1,15 @@
 import Link from "next/link";
 
-// Shared top nav for the product (app) pages — every page reachable from every page.
+// Shared top nav for the product (app) pages.
+// Trimmed to the frozen v1 scope: Listing Studio and Agency Briefs were cut, and
+// Movers folded into Radar as a filter rather than standing as its own destination.
 const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/radar", label: "Radar" },
-  { href: "/analysis", label: "AI Analysis" },
-  { href: "/movers", label: "Movers" },
-  { href: "/listing", label: "Listing Studio" },
+  { href: "/analysis", label: "Analysis" },
   { href: "/reports", label: "Reports" },
   { href: "/ask", label: "Ask" },
   { href: "/tracker", label: "Tracker" },
-  { href: "/pricing", label: "Pricing" },
 ];
 
 export default function AppNav({ active }: { active: string }) {
@@ -24,7 +23,7 @@ export default function AppNav({ active }: { active: string }) {
         <nav className="flex items-center gap-1 overflow-x-auto text-sm">
           {LINKS.map((l) => (
             <Link key={l.href} href={l.href}
-              className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${active === l.label ? "bg-grn/10 font-medium text-grn" : "text-[#6b6f78] hover:bg-black/5 hover:text-white"}`}>
+              className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${active === l.label ? "bg-grn/10 font-medium text-grn" : "text-[#6b6f78] hover:bg-black/5 hover:text-ink"}`}>
               {l.label}
             </Link>
           ))}

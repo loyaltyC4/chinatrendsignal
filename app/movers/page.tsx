@@ -37,7 +37,7 @@ export default function MoversPage() {
         {/* platform filter */}
         <div className="mt-7 flex flex-wrap gap-2">
           {PLATFORMS.map((p, i) => (
-            <button key={p} className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] transition-colors ${i === 0 ? "border-grn/40 bg-grn/10 text-grn" : "border-black/10 text-[#6b6f78] hover:border-white/25 hover:text-white"}`}>{p}</button>
+            <button key={p} className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] transition-colors ${i === 0 ? "border-grn/40 bg-grn/10 text-grn" : "border-black/10 text-[#6b6f78] hover:border-white/25 hover:text-ink"}`}>{p}</button>
           ))}
         </div>
 

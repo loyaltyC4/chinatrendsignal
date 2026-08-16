@@ -44,7 +44,6 @@ export default async function AnalysisPage({ searchParams }: { searchParams: Pro
             <h1 className="mt-2 font-serif text-3xl font-bold tracking-tight sm:text-4xl">{product.name}</h1>
             <p className="mt-1 font-mono text-xs text-mut">{product.chineseName} · {product.category}</p>
           </div>
-          <a href="/listing" className="rounded-xl bg-grn px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1e40af]">Build listing →</a>
         </div>
         <div className="mt-7 grid gap-4 sm:grid-cols-4">
           {[

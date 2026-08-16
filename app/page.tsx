@@ -1,11 +1,13 @@
 import OrbitingCirclesGlobe from "@/components/ui/orbiting-circles-02";
 
 const platforms = ["Douyin", "Xiaohongshu", "1688", "Taobao", "Xingtu", "WeChat", "TikTok Shop"];
+// Three tiers, repriced against the category (modal serious-seller tier is ~US$49).
+// Agency was replaced by per-seat pricing on Operator. Every line below must be
+// something a paying user can actually click — no promises we can't ship.
 const tiers = [
   { name: "Scout", price: "A$0", per: "forever free", features: ["Weekly trend email", "Top-10 list, 7-day delayed", "5 product lookups / mo"], hot: false },
-  { name: "Hunter", price: "A$39", per: "/month", features: ["Daily viral radar", "1688/Taobao supplier match", "50 deep-dives / mo", "10-product watchlist alerts"], hot: true },
-  { name: "Operator", price: "A$99", per: "/month", features: ["Unlimited deep-dives", "KOL rate cards (XHS + Douyin)", "Supplier price history", "CSV + API export"], hot: false },
-  { name: "Agency", price: "A$299", per: "/month · 3 seats", features: ["Shortlist exports w/ quotes + GMV", "Category benchmarks", "Metered REST API", "Priority refresh windows"], hot: false },
+  { name: "Hunter", price: "A$59", per: "/month", features: ["Daily radar, every signal", "First-detected timestamp on each", "1688/Taobao supplier match", "10-product watchlist"], hot: true },
+  { name: "Operator", price: "A$129", per: "/month", features: ["Everything in Hunter, uncapped", "Unlimited watchlist", "Supplier price history", "CSV export", "Extra seats +A$39"], hot: false },
 ];
 const pull = [
   { name: "Restaurant summer-job skit", val: "4.02M ❤" },
@@ -37,10 +39,10 @@ export default function Home() {
       <header className="relative z-10 mx-auto max-w-6xl px-6 h-20 flex items-center justify-between">
         <Logo />
         <nav className="hidden md:flex items-center gap-9 text-[15px] text-[#b9c9b3]">
-          <a href="#how" className="hover:text-white transition-colors">How it works</a>
-          <a href="#data" className="hover:text-white transition-colors">Live data</a>
-          <a href="/dashboard" className="hover:text-white transition-colors font-medium text-grn">Open the app →</a>
-          <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+          <a href="#how" className="hover:text-ink transition-colors">How it works</a>
+          <a href="#data" className="hover:text-ink transition-colors">Live data</a>
+          <a href="/dashboard" className="hover:text-ink transition-colors font-medium text-grn">Open the app →</a>
+          <a href="#pricing" className="hover:text-ink transition-colors">Pricing</a>
         </nav>
         <a href="/dashboard" className="rounded-xl bg-grn px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1e40af] transition-colors">Open the app</a>
       </header>
@@ -49,8 +51,10 @@ export default function Home() {
       <section className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
         <div className="rounded-[28px] bg-ivory text-center shadow-[0_40px_100px_rgba(0,0,0,.35)] overflow-hidden">
           <div className="px-6 sm:px-12 pt-16 sm:pt-20 pb-0">
+            {/* Honest until the nightly cache lands in Phase 3. The old copy read
+                "329 endpoints live · refreshed today" over a hardcoded table. */}
             <span className="inline-flex items-center gap-2 rounded-full border border-[#dcead3] bg-[#eef5ea] px-4 py-2 text-[13.5px] font-medium text-[#3c5a41]">
-              <span className="h-2 w-2 rounded-full bg-grn animate-pulse" /> 329 endpoints live · refreshed today
+              <span className="h-2 w-2 rounded-full bg-grn" /> Seven China sources · in private beta
             </span>
             <h1 className="mx-auto mt-7 max-w-[16ch] font-serif text-[clamp(2.6rem,6vw,4.75rem)] font-bold leading-[1.06] tracking-tight text-ink">
               The trend radar for <em className="italic text-grn">cross-border</em> sellers
@@ -59,27 +63,15 @@ export default function Home() {
               We watch Douyin, Xiaohongshu, 1688 and Xingtu so you find the product, the factory price, and the creator rate card — weeks before the trend reaches TikTok.
             </p>
 
-            <form action="#waitlist" className="mx-auto mt-9 flex max-w-xl flex-wrap justify-center gap-3">
-              <input type="email" required placeholder="Enter email" aria-label="Email address"
-                className="min-w-[240px] flex-1 rounded-xl border-[1.5px] border-[#dcdccc] bg-white px-5 py-4 text-base text-ink placeholder:text-[#a3a89c] focus:border-grn focus:outline-none focus:ring-4 focus:ring-grn/15" />
-              <button type="submit" className="rounded-xl bg-ink px-7 py-4 text-base font-semibold text-white transition-colors hover:bg-grn">Sign up for free</button>
-            </form>
-            <p className="mt-4 font-mono text-xs text-[#8a9484] tracking-wide">No credit card required · free tier forever</p>
-
-            <div className="mx-auto mt-7 flex max-w-xl items-center gap-4 text-[13px] text-[#b0b5a6]">
-              <span className="h-px flex-1 bg-[#e7e5d9]" /> or <span className="h-px flex-1 bg-[#e7e5d9]" />
-            </div>
-            <div className="mt-5 flex flex-wrap justify-center gap-3.5">
-              <a href="#" className="inline-flex items-center gap-2.5 rounded-xl border-[1.5px] border-[#dcdccc] bg-white px-7 py-3.5 text-[15px] font-medium text-ink transition-all hover:border-ink hover:-translate-y-px">
-                <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C41 35.4 44 30.2 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
-                Sign up with Google
-              </a>
-              <a href="#" className="inline-flex items-center gap-2.5 rounded-xl border-[1.5px] border-[#dcdccc] bg-white px-7 py-3.5 text-[15px] font-medium text-ink transition-all hover:border-ink hover:-translate-y-px">
-                <svg width="18" height="18" viewBox="0 0 23 23" aria-hidden="true"><rect width="10" height="10" x="1" y="1" fill="#f35325"/><rect width="10" height="10" x="12" y="1" fill="#81bc06"/><rect width="10" height="10" x="1" y="12" fill="#05a6f0"/><rect width="10" height="10" x="12" y="12" fill="#ffba08"/></svg>
-                Sign up with Microsoft
+            {/* Was three dead href="#" buttons, including Google and Microsoft.
+                Real sign-in is a passwordless email link. OAuth providers come back
+                only once they are actually configured in Supabase. */}
+            <div className="mx-auto mt-9 flex max-w-xl flex-wrap justify-center gap-3">
+              <a href="/login" className="rounded-xl bg-ink px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-grn">
+                Create a free account
               </a>
             </div>
-            <p className="mt-6 text-xs text-[#a3a89c]">By signing up, you agree to our <a className="text-[#7a8471] underline" href="#">Terms</a> and <a className="text-[#7a8471] underline" href="#">Privacy Policy</a>.</p>
+            <p className="mt-4 font-mono text-xs text-[#8a9484] tracking-wide">No card, no password · free tier forever</p>
           </div>
 
           {/* orbit — white band so the logos pop */}

@@ -15,8 +15,7 @@ const KPIS = [
 const NAV = [
   { label: "Radar", href: "/radar" },
   { label: "Movers & Shakers", href: "/movers" },
-  { label: "Listing Studio", href: "/listing" },
-  { label: "Pricing", href: "/pricing" },
+    { label: "Pricing", href: "/pricing" },
   { label: "Home", href: "/" },
 ];
 
@@ -70,7 +69,7 @@ export default function DashboardPage() {
           {/* filters */}
           <div className="mt-7 flex flex-wrap gap-2">
             {["All niches", "Pet care", "Beauty", "Wellness", "Gadgets", "Home", "Food"].map((f, i) => (
-              <button key={f} className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] transition-colors ${i === 0 ? "border-grn/40 bg-grn/10 text-grn" : "border-black/10 text-[#6b6f78] hover:border-white/25 hover:text-white"}`}>{f}</button>
+              <button key={f} className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] transition-colors ${i === 0 ? "border-grn/40 bg-grn/10 text-grn" : "border-black/10 text-[#6b6f78] hover:border-white/25 hover:text-ink"}`}>{f}</button>
             ))}
             <span className="ml-auto hidden font-mono text-[11px] text-[#8a8f96] sm:block">{SIGNALS.length} signals</span>
           </div>

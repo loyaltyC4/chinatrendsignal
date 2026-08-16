@@ -2,12 +2,12 @@
 import { useState } from "react";
 import type { AnalysisKind, EnrichmentResult, ProductContext } from "@/lib/analysis-types";
 
+// Frozen v1 scope: complaint mining, listing copy and creator matching were cut —
+// none had demand evidence behind them. What remains is the two things the research
+// supported: explain why a signal moved, and score whether it is worth testing.
 const actions: Array<{ kind: AnalysisKind; label: string; description: string; credits: number }> = [
   { kind: "signal_explanation", label: "Explain signal", description: "Hook, buyer, risk", credits: 2 },
   { kind: "niche_scorecard", label: "Score opportunity", description: "Demand, margin, saturation", credits: 3 },
-  { kind: "complaint_miner", label: "Mine complaints", description: "Turn reviews into an angle", credits: 5 },
-  { kind: "listing_copy", label: "Write listing", description: "Benefits, tags, copy", credits: 5 },
-  { kind: "creator_match", label: "Match creators", description: "Rate-card fit + outreach", credits: 4 },
 ];
 
 export default function AiAnalysisPanel({ context }: { context: ProductContext }) {
@@ -28,7 +28,7 @@ export default function AiAnalysisPanel({ context }: { context: ProductContext }
   return (
     <section className="rounded-2xl border border-black/10 bg-ivory p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div><p className="font-mono text-[10px] uppercase tracking-[.12em] text-mut">AI Decision Engine</p><h2 className="mt-1 text-lg font-semibold text-ink">Turn this signal into a decision</h2></div>
+        <div><p className="font-mono text-[10px] uppercase tracking-[.12em] text-mut">Signal analysis</p><h2 className="mt-1 text-lg font-semibold text-ink">Why this moved, and whether it&apos;s worth testing</h2></div>
         <span className="rounded-full border border-grn/20 bg-grn/10 px-2.5 py-1 font-mono text-[10px] text-grn">Credit-metered</span>
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
