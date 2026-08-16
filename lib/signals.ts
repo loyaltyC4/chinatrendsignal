@@ -56,10 +56,13 @@ export async function getRadar(limit = 40): Promise<RadarPayload> {
 
     if (error || !data || data.length === 0) return seedPayload();
 
+    // "partial" is the normal steady state, not a failure: source rotation means a
+    // run deliberately covers a slice per night. Only "failed" should be excluded.
     const { data: run } = await db
       .from("ingest_runs")
       .select("finished_at, status")
-      .eq("status", "complete")
+      .in("status", ["complete", "partial"])
+      .not("finished_at", "is", null)
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle();
