@@ -66,30 +66,32 @@
   :root {
     color-scheme: light;
 
-    --c-canvas: #fbfbfa;        /* cool near-white, NOT cream */
+    /* Values below are lifted from bidcheck.co.za's own stylesheet, so the two
+       products read as one family rather than two unrelated brands. */
+    --c-canvas: #fcfdff;
     --c-surface: #ffffff;
-    --c-surface-2: #f5f6f8;
-    --c-surface-3: #eef0f4;
+    --c-surface-2: #f4f7fb;
+    --c-surface-3: #e4e8ef;
 
-    --c-ink: #14161a;           /* near-black, never pure */
-    --c-body: #565e6d;          /* blue-tinted slate */
-    --c-muted: #7c8595;
-    --c-faint: #a3abb8;
+    --c-ink: #0e1524;
+    --c-body: #4d5871;
+    --c-muted: #606b84;         /* bidcheck slate */
+    --c-faint: #98a2b8;
 
-    --c-line: #e5e8ed;
-    --c-line-strong: #d3d8e0;
+    --c-line: #e4e8ef;          /* bidcheck hairline */
+    --c-line-strong: #cbd3e0;
 
-    --c-accent: #2563eb;
-    --c-accent-strong: #1d4ed8; /* CTA only */
-    --c-accent-weak: #eef3fe;
+    --c-accent: #024ff5;        /* bidcheck electric */
+    --c-accent-strong: #024ff5; /* CTA. Dark enough for white text at AA. */
+    --c-accent-weak: #e8efff;
     --c-on-accent: #ffffff;
 
-    --c-pos: #15803d;
-    --c-pos-weak: #e8f6ec;
-    --c-warn: #b45309;
+    --c-pos: #16a34a;
+    --c-pos-weak: #dcf3d8;
+    --c-warn: #a16207;
     --c-warn-weak: #fdf3e3;
     --c-neg: #b91c1c;
-    --c-neg-weak: #fdeded;
+    --c-neg-weak: #fef2f2;
 
     --shadow-card: 0 1px 2px rgb(20 22 26 / .04), 0 4px 16px rgb(20 22 26 / .04);
     --shadow-lift: 0 2px 4px rgb(20 22 26 / .05), 0 12px 32px rgb(20 22 26 / .07);
@@ -98,26 +100,27 @@
   [data-theme="dark"] {
     color-scheme: dark;
 
-    --c-canvas: #08090a;
-    --c-surface: #0f1011;
-    --c-surface-2: #16181a;
-    --c-surface-3: #1e2124;
+    /* Dark navies are bidcheck's too, not a generic zinc ramp. */
+    --c-canvas: #080b12;
+    --c-surface: #111726;
+    --c-surface-2: #161d2c;
+    --c-surface-3: #1b2231;
 
-    --c-ink: #f5f6f7;
-    --c-body: #a8b0bd;
-    --c-muted: #7d8593;
-    --c-faint: #5d646f;
+    --c-ink: #f1f4f9;
+    --c-body: #a7b2c6;
+    --c-muted: #7d879c;
+    --c-faint: #5b6479;
 
-    --c-line: #1e2124;
-    --c-line-strong: #2b3036;
+    --c-line: #1b2231;
+    --c-line-strong: #28324a;
 
-    --c-accent: #6b83f0;
-    --c-accent-strong: #7c90f5;
-    --c-accent-weak: #141a2e;
-    --c-on-accent: #08090a;
+    --c-accent: #4c7dff;        /* bidcheck's lighter periwinkle reads better on navy */
+    --c-accent-strong: #4c7dff;
+    --c-accent-weak: #10192e;
+    --c-on-accent: #060910;
 
     --c-pos: #4ade80;
-    --c-pos-weak: #10201704;
+    --c-pos-weak: #0f2016;
     --c-warn: #fbbf24;
     --c-warn-weak: #21190c;
     --c-neg: #f87171;

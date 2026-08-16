@@ -1,44 +1,57 @@
 import Link from "next/link";
-import Image from "next/image";
 import MarketingNav from "@/components/marketing-nav";
 import MarketingFooter from "@/components/marketing-footer";
 import HeroRadar from "@/components/hero-radar";
+import LiveSignals from "@/components/live-signals";
+import SourceMarquee from "@/components/source-marquee";
+import Faq from "@/components/faq";
 
 export const dynamic = "force-dynamic";
 
-const SOURCES = [
-  { src: "/logos/douyin.com.png", alt: "Douyin" },
-  { src: "/logos/xiaohongshu.com.png", alt: "Xiaohongshu" },
-  { src: "/logos/1688.com.png", alt: "1688" },
-  { src: "/logos/taobao.com.png", alt: "Taobao" },
-  { src: "/logos/alibaba.com.png", alt: "Alibaba" },
-  { src: "/logos/tiktok.com.png", alt: "TikTok Shop" },
-  { src: "/logos/wechat.com.png", alt: "WeChat" },
+/*
+ * Homepage, structured on bidcheck.co.za's section order.
+ *
+ * WHAT CARRIED OVER (and what it became):
+ *   Find, win, manage tenders            -> Find it, cost it, sell it
+ *   Latest tenders, published live        -> Latest signals, logged live
+ *   Browse by category & province         -> the seven platforms (marquee)
+ *   Most bids die on compliance not price -> Most products die on timing not margin
+ *   Four qualification steps              -> four validation checks
+ *   Your tender agent works while you sleep -> the nightly pull
+ *   Intelligence no one gives SA SMMEs    -> intelligence no one gives cross-border sellers
+ *   Proof, not promises                   -> measured / inferred / unknown
+ *   Three steps, under three minutes      -> kept as-is
+ *   One won tender pays for years         -> one winning product pays for years
+ *   Questions you should ask + Pricing Qs  -> one merged FAQ
+ *   Your next contract is right here      -> closing band
+ *
+ * WHAT WAS DROPPED: "Every province, on one live map" (no geographic dimension
+ * to this product, and a map would be decoration), and "Never lose a bid to a
+ * missing form" (compliance-paperwork specific, no analogue here).
+ *
+ * Eyebrow budget: 11 sections, so 3 permitted. Three used, on sections 4, 6 and 9.
+ */
+
+const CHECKS = [
+  { t: "Matched to your niche", d: "Signals arrive tagged by category, so you are not reading beauty rows when you sell pet gear." },
+  { t: "Intent before you spend", d: "Saves counted against likes, so you can see demand rather than passing attention." },
+  { t: "A factory that makes it", d: "Searched against 1688 wholesale listings, median offer taken rather than the bait price." },
+  { t: "The date we first saw it", d: "Written once on arrival and never altered, so early is checkable rather than claimed." },
+];
+
+const STEPS = [
+  { n: "01", t: "Create an account", d: "Email link, no password. The free tier needs no card." },
+  { n: "02", t: "Pick your niches", d: "Beauty, pet care, mother and baby, kitchen, sports, home." },
+  { n: "03", t: "Read the radar", d: "Sorted by intent, stamped with first-seen dates." },
 ];
 
 const TIERS = [
-  {
-    name: "Scout",
-    price: "A$0",
-    per: "forever",
-    line: "See what we see, a week late.",
-    feats: ["Weekly trend email", "Top 10, 7-day delayed", "5 lookups a month"],
-  },
-  {
-    name: "Hunter",
-    price: "A$59",
-    per: "/month",
-    line: "The daily edge for active sellers.",
-    feats: ["Daily radar, every signal", "First-detected date on each", "1688 supplier match", "10-product watchlist"],
-    featured: true,
-  },
-  {
-    name: "Operator",
-    price: "A$129",
-    per: "/month",
-    line: "For full-time operators.",
-    feats: ["Everything in Hunter, uncapped", "Unlimited watchlist", "Supplier price history", "CSV export", "Extra seats +A$39"],
-  },
+  { name: "Scout", price: "A$0", per: "forever", line: "See what we see, a week late.",
+    feats: ["Weekly trend email", "Top 10, 7-day delayed", "5 lookups a month"] },
+  { name: "Hunter", price: "A$59", per: "/month", line: "The daily edge for active sellers.",
+    feats: ["Daily radar, every signal", "First-detected date on each", "1688 supplier match", "10-product watchlist"], featured: true },
+  { name: "Operator", price: "A$129", per: "/month", line: "For full-time operators.",
+    feats: ["Everything in Hunter, uncapped", "Unlimited watchlist", "Supplier price history", "CSV export", "Extra seats +A$39"] },
 ];
 
 export default function Home() {
@@ -47,177 +60,233 @@ export default function Home() {
       <MarketingNav />
 
       <main id="main">
-        {/* Hero: asymmetric split. The right column is the real product, not an image of it. */}
+        {/* 1. HERO: asymmetric split */}
         <section className="mx-auto grid max-w-[1160px] items-center gap-12 px-5 pt-16 pb-14 sm:px-8 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:pt-20">
           <div>
-            <h1 className="display-xl max-w-[15ch] text-ink">
-              See it in China before it lands on TikTok.
-            </h1>
+            <h1 className="display-xl max-w-[16ch] text-ink">Find it, cost it, sell it before the window shuts.</h1>
             <p className="mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-body">
-              We track Douyin, Xiaohongshu and 1688 so you get the product and the factory price
-              while the window is still open.
+              We index what Chinese shoppers are saving on Douyin and Xiaohongshu, match it to a
+              factory price on 1688, and log the date we first saw it.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link
-                href="/login"
-                className="rounded-ctl bg-accentstrong px-5 py-2.5 text-[14px] font-medium text-onaccent transition-opacity hover:opacity-90 active:translate-y-px"
-              >
+              <Link href="/login" className="rounded-ctl bg-accentstrong px-5 py-2.5 text-[14px] font-medium text-onaccent transition-opacity hover:opacity-90 active:translate-y-px">
                 Get started
               </Link>
-              <Link
-                href="/pricing"
-                className="rounded-ctl border border-linestrong px-5 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-surface2 active:translate-y-px"
-              >
+              <Link href="/pricing" className="rounded-ctl border border-linestrong px-5 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-surface2 active:translate-y-px">
                 See pricing
               </Link>
             </div>
           </div>
-
           <HeroRadar />
         </section>
 
-        {/* Source strip. Logos only, no category labels underneath. */}
-        <section className="border-y border-line bg-surface">
-          <div className="mx-auto flex max-w-[1160px] flex-wrap items-center justify-center gap-x-10 gap-y-6 px-5 py-8 sm:px-8">
-            {SOURCES.map((s) => (
-              <Image
-                key={s.alt}
-                src={s.src}
-                alt={s.alt}
-                width={28}
-                height={28}
-                className="h-7 w-7 object-contain opacity-55 grayscale transition-all hover:opacity-100 hover:grayscale-0"
-              />
+        {/* 2. LIVE FEED: full-width data band */}
+        <section className="border-y border-line bg-surface2/40">
+          <div className="mx-auto max-w-[1160px] px-5 py-18 sm:px-8">
+            <LiveSignals limit={6} />
+          </div>
+        </section>
+
+        {/* 3. SOURCES: marquee, the only one on the page */}
+        <section className="border-b border-line bg-surface py-9">
+          <SourceMarquee />
+        </section>
+
+        {/* 4. THE WEDGE: statement plus a four-check strip */}
+        <section id="how" className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
+          <span className="label text-accent">Why sellers lose</span>
+          <h2 className="display-lg mt-3 max-w-[24ch] text-ink">
+            Most products die on timing, not on margin.
+          </h2>
+          <p className="mt-4 max-w-[58ch] text-[15px] leading-relaxed text-body">
+            By the time a product surfaces in a Western ad-spy tool, the creatives are already
+            running and the price is already falling. The margin was never the problem. The
+            fortnight you lost was.
+          </p>
+
+          <div className="mt-12 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+            {CHECKS.map((c, i) => (
+              <div key={c.t} className="bg-surface p-6">
+                <span data-numeric className="font-mono text-[11px] text-accent">0{i + 1}</span>
+                <p className="mt-3 text-[14.5px] font-medium leading-snug text-ink">{c.t}</p>
+                <p className="mt-2 text-[13px] leading-relaxed text-mut">{c.d}</p>
+              </div>
             ))}
           </div>
         </section>
 
-        {/* Three checks, asymmetric: one lead panel plus two stacked. Deliberately not
-            three equal cards. */}
-        <section id="how" className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
-          <span className="label text-accent">Before anything reaches you</span>
-          <h2 className="display-lg mt-3 max-w-[20ch] text-ink">
-            Three checks, or it never shows up.
+        {/* 5. THE NIGHTLY PULL: split, reversed from the hero */}
+        <section className="border-y border-line bg-surface">
+          <div className="mx-auto grid max-w-[1160px] items-center gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[.9fr_1.1fr] lg:gap-16">
+            <dl className="divide-y divide-[var(--c-line)] border-y border-line">
+              {[
+                ["19:00 UTC", "The pull starts on a schedule, not when someone remembers."],
+                ["Product first", "Constrained to commercial content, so it returns merchandise rather than viral cats."],
+                ["Deduped", "A product seen again updates in place. Its first-seen date does not move."],
+                ["Logged", "Every run records which endpoints answered and which failed."],
+              ].map(([k, v]) => (
+                <div key={k} className="grid grid-cols-[6.5rem_1fr] gap-4 py-4">
+                  <dt className="font-mono text-[11.5px] text-accent">{k}</dt>
+                  <dd className="text-[13.5px] leading-relaxed text-body">{v}</dd>
+                </div>
+              ))}
+            </dl>
+            <div>
+              <h2 className="display-lg max-w-[20ch] text-ink">The radar pulls while you sleep.</h2>
+              <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed text-body">
+                A scheduled job reads the Chinese platforms overnight, extracts the actual product
+                from each post, and prices it against wholesale listings. You wake up to a sorted
+                index rather than an empty search box.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. INTELLIGENCE: asymmetric trio, deliberately not three equal cards */}
+        <section className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
+          <span className="label text-accent">What you get that others do not</span>
+          <h2 className="display-lg mt-3 max-w-[26ch] text-ink">
+            Nobody else is watching the upstream.
           </h2>
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-[1.15fr_1fr]">
+          <div className="mt-10 grid gap-4 lg:grid-cols-[1.25fr_1fr]">
             <div className="flex flex-col justify-between rounded-card border border-line bg-surface p-7">
               <div>
-                <p className="text-[15px] font-medium text-ink">Demand is real</p>
-                <p className="mt-2 max-w-[44ch] text-[14px] leading-relaxed text-body">
-                  We rank Xiaohongshu posts by saves, not by views. A save is someone bookmarking
-                  a thing to buy later, which is the closest public proxy for intent there is.
+                <p className="text-[15.5px] font-medium text-ink">The Chinese platforms, not the Western mirror</p>
+                <p className="mt-2.5 max-w-[46ch] text-[14px] leading-relaxed text-body">
+                  Every competitor in this category reads TikTok Shop, which is where a trend
+                  arrives, not where it starts. We read Douyin and Xiaohongshu, which is where
+                  Chinese shoppers find things first.
                 </p>
               </div>
-              <p data-numeric className="mt-8 font-mono text-[34px] font-medium leading-none tracking-[-.03em] text-ink">
-                saves <span className="text-accent">&gt;</span> likes
+              <p data-numeric className="mt-8 font-mono text-[30px] font-medium leading-none tracking-[-.03em] text-ink">
+                4 platforms<span className="text-accent">.</span> 1 index<span className="text-accent">.</span>
               </p>
             </div>
 
             <div className="grid gap-4">
               <div className="rounded-card border border-line bg-surface p-6">
-                <p className="text-[15px] font-medium text-ink">A factory makes it</p>
+                <p className="text-[15px] font-medium text-ink">Saves, not views</p>
                 <p className="mt-2 max-w-[46ch] text-[13.5px] leading-relaxed text-body">
-                  Every candidate is searched against 1688 wholesale listings. We take the median
-                  offer, not the cheapest, because the cheapest is usually bait.
+                  Ranked by bookmark count rather than vanity engagement, which is the difference
+                  between something people liked and something people intend to buy.
                 </p>
               </div>
               <div className="rounded-card border border-line bg-surface p-6">
-                <p className="text-[15px] font-medium text-ink">We log when we saw it</p>
+                <p className="text-[15px] font-medium text-ink">The factory price attached</p>
                 <p className="mt-2 max-w-[46ch] text-[13.5px] leading-relaxed text-body">
-                  Every signal carries the date it entered our index. That date is written once
-                  and never changed, so the claim that we were early is something you can check.
+                  The extracted product term is searched on 1688, so the wholesale figure sits on
+                  the same row as the demand signal instead of in another tab.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Honesty section. Full-width band, different layout family again. */}
+        {/* 7. PROOF: definition list */}
         <section id="proof" className="border-y border-line bg-surface">
           <div className="mx-auto grid max-w-[1160px] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1fr_1fr] lg:gap-16">
             <div>
-              <h2 className="display-lg max-w-[18ch] text-ink">
-                We would rather show a dash than a guess.
-              </h2>
-              <p className="mt-5 max-w-[52ch] text-[15px] leading-relaxed text-body">
-                Tools in this category are widely distrusted for inventing store revenue. One
-                seller reported a competitor showing $200k against a store that had not cleared
-                $1k. So we do not estimate revenue at all.
+              <h2 className="display-lg max-w-[18ch] text-ink">Proof, not promises.</h2>
+              <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed text-body">
+                Three states, applied to every figure in the product. If a number is not one of
+                these, it does not ship.
               </p>
             </div>
             <dl className="divide-y divide-[var(--c-line)] border-y border-line">
               {[
-                ["Measured", "Engagement counts read from the platform, with the time we read them."],
-                ["Inferred", "Anything calculated rather than observed is marked est. in the interface."],
-                ["Unknown", "A value we do not have renders as a dash. It is never filled in."],
-              ].map(([term, desc]) => (
-                <div key={term} className="grid grid-cols-[7.5rem_1fr] gap-4 py-4">
-                  <dt className="font-mono text-[12px] uppercase tracking-wider text-accent">{term}</dt>
-                  <dd className="text-[13.5px] leading-relaxed text-body">{desc}</dd>
+                ["Measured", "Read off the platform, with the time we read it recorded alongside."],
+                ["Inferred", "Calculated rather than observed. Marked est. everywhere it appears."],
+                ["Unknown", "Rendered as a dash. Never filled in with a plausible-looking guess."],
+              ].map(([k, v]) => (
+                <div key={k} className="grid grid-cols-[7rem_1fr] gap-4 py-4">
+                  <dt className="font-mono text-[12px] uppercase tracking-wider text-accent">{k}</dt>
+                  <dd className="text-[13.5px] leading-relaxed text-body">{v}</dd>
                 </div>
               ))}
             </dl>
           </div>
         </section>
 
-        {/* Pricing summary */}
+        {/* 8. THREE STEPS: numbered horizontal */}
         <section className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
-          <h2 className="display-lg max-w-[16ch] text-ink">Plain pricing, in AUD.</h2>
-          <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-body">
-            GST included. Cancel in one click. Credits never expire.
-          </p>
-
-          <div className="mt-10 grid gap-px overflow-hidden rounded-card border border-line bg-line md:grid-cols-3">
-            {TIERS.map((t) => (
-              <div key={t.name} className={`flex flex-col p-6 ${t.featured ? "bg-surface2" : "bg-surface"}`}>
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-[14px] font-medium text-ink">{t.name}</span>
-                  {t.featured && (
-                    <span className="rounded-chip bg-accentweak px-1.5 py-0.5 font-mono text-[9.5px] text-accent">
-                      most popular
-                    </span>
-                  )}
-                </div>
-                <p className="mt-4 flex items-baseline gap-1">
-                  <span data-numeric className="font-mono text-[30px] font-medium tracking-[-.03em] text-ink">
-                    {t.price}
-                  </span>
-                  <span className="font-mono text-[12px] text-mut">{t.per}</span>
-                </p>
-                <p className="mt-2 text-[13px] text-mut">{t.line}</p>
-                <ul className="mt-5 flex-1 space-y-2 border-t border-line pt-5">
-                  {t.feats.map((f) => (
-                    <li key={f} className="flex gap-2 text-[13px] leading-snug text-body">
-                      <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-accent" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/login"
-                  className={`mt-6 rounded-ctl px-4 py-2 text-center text-[13px] font-medium transition-opacity hover:opacity-90 active:translate-y-px ${
-                    t.featured
-                      ? "bg-accentstrong text-onaccent"
-                      : "border border-linestrong text-ink"
-                  }`}
-                >
-                  Get started
-                </Link>
-              </div>
+          <h2 className="display-lg max-w-[20ch] text-ink">Three steps, under three minutes.</h2>
+          <ol className="mt-10 grid gap-8 md:grid-cols-3 md:gap-6">
+            {STEPS.map((s) => (
+              <li key={s.n} className="border-t-2 border-accent pt-5">
+                <span data-numeric className="font-mono text-[12px] text-accent">{s.n}</span>
+                <p className="mt-2 text-[16px] font-medium text-ink">{s.t}</p>
+                <p className="mt-2 max-w-[38ch] text-[13.5px] leading-relaxed text-body">{s.d}</p>
+              </li>
             ))}
+          </ol>
+        </section>
+
+        {/* 9. PRICING */}
+        <section className="border-y border-line bg-surface2/40">
+          <div className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
+            <span className="label text-accent">Pricing</span>
+            <h2 className="display-lg mt-3 max-w-[24ch] text-ink">
+              One winning product pays for years of this.
+            </h2>
+            <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed text-body">
+              Plain AUD, GST included. Credits never expire and cancelling takes one click.
+            </p>
+
+            <div className="mt-10 grid gap-px overflow-hidden rounded-card border border-line bg-line md:grid-cols-3">
+              {TIERS.map((t) => (
+                <div key={t.name} className={`flex flex-col p-7 ${t.featured ? "bg-surface2" : "bg-surface"}`}>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-[15px] font-medium text-ink">{t.name}</span>
+                    {t.featured && (
+                      <span className="rounded-chip bg-accentweak px-1.5 py-0.5 font-mono text-[9.5px] text-accent">
+                        most popular
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-5 flex items-baseline gap-1.5">
+                    <span data-numeric className="font-mono text-[34px] font-medium tracking-[-.035em] text-ink">{t.price}</span>
+                    <span className="font-mono text-[12.5px] text-mut">{t.per}</span>
+                  </p>
+                  <p className="mt-2 text-[13.5px] text-mut">{t.line}</p>
+                  <ul className="mt-6 flex-1 space-y-2.5 border-t border-line pt-6">
+                    {t.feats.map((f) => (
+                      <li key={f} className="flex gap-2.5 text-[13.5px] leading-snug text-body">
+                        <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-accent" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href="/login"
+                    className={`mt-7 rounded-ctl px-4 py-2.5 text-center text-[13.5px] font-medium transition-opacity hover:opacity-90 active:translate-y-px ${
+                      t.featured ? "bg-accentstrong text-onaccent" : "border border-linestrong text-ink"
+                    }`}
+                  >
+                    Get started
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Closing band */}
+        {/* 10. FAQ: accordion */}
+        <section className="mx-auto max-w-[46rem] px-5 py-20 sm:px-8">
+          <h2 className="display-lg max-w-[20ch] text-ink">Questions you should ask.</h2>
+          <div className="mt-8">
+            <Faq />
+          </div>
+        </section>
+
+        {/* 11. CLOSING BAND */}
         <section className="border-t border-line bg-surface">
           <div className="mx-auto max-w-[1160px] px-5 py-20 text-center sm:px-8">
-            <h2 className="display-lg mx-auto max-w-[20ch] text-ink">
-              The next one is trending in China right now.
+            <h2 className="display-lg mx-auto max-w-[22ch] text-ink">
+              Your next product is trending in China right now.
             </h2>
             <p className="mx-auto mt-4 max-w-[46ch] text-[15px] leading-relaxed text-body">
-              Start on the free tier. No card, no password, and the first-seen dates are there
-              from day one.
+              Start free. No card, no password, and the first-seen dates are there from day one.
             </p>
             <Link
               href="/login"

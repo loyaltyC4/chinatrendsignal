@@ -51,7 +51,7 @@ export function SourceBadge({ live, when }: { live: boolean; when: string }) {
   );
 }
 
-/** Metric tile. No card chrome — hairline and spacing carry the structure. */
+/** Metric tile. No card chrome; hairline and spacing carry the structure. */
 export function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="border-l border-line pl-3.5 first:border-l-0 first:pl-0">
