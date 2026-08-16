@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { extractProducts, isExtractionConfigured } from "@/lib/extract";
 import {
   callJustOne,
   douyinHotSearch,
@@ -78,6 +79,8 @@ export type IngestReport = {
   callsMade: number;
   inserted: number;
   updated: number;
+  extracted: number;
+  productsFound: number;
   enriched: number;
   elapsedMs: number;
   stoppedEarly: string | null;
@@ -285,6 +288,8 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
   let callsMade = 0;
   let inserted = 0;
   let updated = 0;
+  let extracted = 0;
+  let productsFound = 0;
   let enriched = 0;
   let stoppedEarly: string | null = null;
 
@@ -344,23 +349,75 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
       }
     }
 
+    /* ---- Stage A2: product extraction ----
+     * Turns caption soup into a searchable product noun. Runs before enrichment so
+     * no paid 1688 lookup is ever spent on a row that is not a product. */
+
+    if (isExtractionConfigured() && timeLeft() > 15_000) {
+      const { data: pending } = await db
+        .from("signals")
+        .select("id, title")
+        .is("extracted_at", null)
+        .order("saves", { ascending: false, nullsFirst: false })
+        .limit(Number(process.env.EXTRACT_BATCH_SIZE || 25));
+
+      if (pending?.length) {
+        const ex = await extractProducts(pending.map((p: any) => ({ id: p.id, title: p.title })));
+        endpoints.push({
+          endpoint: "claude:extract",
+          label: `Product extraction · ${pending.length} titles`,
+          ok: ex.ok,
+          code: ex.ok ? 0 : -1,
+          message: ex.error,
+          ms: 0,
+          items: ex.results.length,
+        });
+
+        if (ex.ok) {
+          const stamp = new Date().toISOString();
+          for (const r of ex.results) {
+            await db
+              .from("signals")
+              .update({
+                is_product: r.isProduct,
+                product_term: r.productTerm,
+                product_en: r.productEn,
+                extracted_at: stamp,
+                extraction_model: ex.model,
+              })
+              .eq("id", r.id);
+            extracted++;
+            if (r.isProduct) productsFound++;
+          }
+        }
+        // On failure extracted_at stays null, so the batch is retried next run
+        // rather than being written off as "not a product".
+      }
+    }
+
     /* ---- Stage B: enrichment, with whatever budget remains ---- */
 
     if (!stoppedEarly) {
+      // Only rows confirmed to be products, ranked by saves. Capped by env so the
+      // JustOne spend (~A$0.02-0.04 per call) stays predictable — this, not the
+      // extraction, is the expensive part of the pipeline.
       const { data: queue } = await db
         .from("signals")
-        .select("id, title, platform")
+        .select("id, title, product_term, platform")
+        .eq("is_product", true)
         .is("supplier_checked_at", null)
-        .not("platform", "eq", "1688")
-        .order("engagement_total", { ascending: false, nullsFirst: false })
-        .limit(10);
+        .order("saves", { ascending: false, nullsFirst: false })
+        .limit(Number(process.env.MAX_ENRICH_PER_RUN || 8));
 
       for (const sig of queue ?? []) {
         if (!canCall()) break;
         callsMade++;
-        const r = await wholesaleSearch(searchTermFor(sig.title));
+        // Use the extracted noun. Falls back to the stripped caption only if
+        // extraction somehow left the term empty.
+        const term = (sig.product_term as string | null)?.trim() || searchTermFor(sig.title);
+        const r = await wholesaleSearch(term);
         const offers = r.ok ? parse1688Items(r.data) : [];
-        note(`1688 supplier · ${sig.title.slice(0, 20)}`, r, offers.length);
+        note(`1688 supplier · ${term}`, r, offers.length);
 
         if (r.ok) {
           const prices = offers.flatMap((o) => findPrices(o)).sort((a, b) => a - b);
@@ -403,7 +460,7 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
         .eq("id", runId);
     }
 
-    return { runId, status, callsMade, inserted, updated, enriched, elapsedMs: Date.now() - started, stoppedEarly, endpoints };
+    return { runId, status, callsMade, inserted, updated, extracted, productsFound, enriched, elapsedMs: Date.now() - started, stoppedEarly, endpoints };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Ingest failed";
     if (runId) {
@@ -418,7 +475,7 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
         })
         .eq("id", runId);
     }
-    return { runId, status: "failed", callsMade, inserted, updated, enriched, elapsedMs: Date.now() - started, stoppedEarly: message, endpoints };
+    return { runId, status: "failed", callsMade, inserted, updated, extracted, productsFound, enriched, elapsedMs: Date.now() - started, stoppedEarly: message, endpoints };
   }
 }
 

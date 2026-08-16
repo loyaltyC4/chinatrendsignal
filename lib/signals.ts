@@ -19,6 +19,8 @@ export type RadarRow = Signal & {
   lastSeenAt: string | null;
   sourceUrl: string | null;
   savesRatio: number | null;
+  /** null while the extraction backlog clears; true once confirmed a product. */
+  isProduct: boolean | null;
 };
 
 export type RadarPayload = {
@@ -49,7 +51,11 @@ export async function getRadar(limit = 40): Promise<RadarPayload> {
     const db = supabaseAdmin();
     const { data, error } = await db
       .from("signals")
-      .select("id, title, title_en, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, comments, shares, engagement_total, velocity_pct, intent_score, wholesale_cny, stage")
+      .select("id, title, title_en, product_term, product_en, is_product, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, comments, shares, engagement_total, velocity_pct, intent_score, wholesale_cny, stage")
+      // Drop rows extraction confirmed are not products. Rows not yet assessed
+      // (is_product null) stay visible so the radar is not empty while the
+      // extraction backlog clears.
+      .not("is_product", "is", false)
       .order("velocity_pct", { ascending: false, nullsFirst: false })
       .order("engagement_total", { ascending: false, nullsFirst: false })
       .limit(limit);
@@ -72,8 +78,10 @@ export async function getRadar(limit = 40): Promise<RadarPayload> {
       const likes = Number(r.likes ?? 0);
       return {
         id: r.id,
-        product: r.title_en || r.title,
-        zh: r.title_en ? r.title : "",
+        // Prefer the extracted product name; fall back to the raw caption so a row
+        // is never blank while it waits for extraction.
+        product: r.product_en || r.title_en || r.title,
+        zh: r.product_term || (r.title_en ? r.title : ""),
         niche: r.niche || "Unclassified",
         stage: (r.stage as Signal["stage"]) || "Rising",
         velocityPct: r.velocity_pct != null ? Number(r.velocity_pct) : 0,
@@ -89,6 +97,7 @@ export async function getRadar(limit = 40): Promise<RadarPayload> {
         lastSeenAt: r.last_seen_at,
         sourceUrl: r.source_url,
         savesRatio: likes > 0 ? Math.round((saves / likes) * 100) / 100 : null,
+        isProduct: r.is_product ?? null,
       };
     });
 
@@ -136,6 +145,7 @@ function seedPayload(): RadarPayload {
       lastSeenAt: null,
       sourceUrl: null,
       savesRatio: null,
+      isProduct: null,
     })),
     lastIngestAt: null,
     lastIngestStatus: null,
