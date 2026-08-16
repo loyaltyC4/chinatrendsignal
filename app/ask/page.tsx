@@ -1,55 +1,132 @@
 "use client";
-import { useState } from "react";
-import AppNav from "@/components/app-nav";
 
-const STARTERS = [
-  "What is moving in pet care this week?",
-  "Which products are rising in China but still thin on TikTok Shop?",
-  "Show me a low-saturation product under ¥10 wholesale.",
-  "Which niche should I avoid because returns are high?",
-];
+import { useState } from "react";
+import { Shell } from "@/components/page-shell";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+const STARTERS = [
+  "What's moving fastest in beauty this week?",
+  "Which signals have saves beating likes?",
+  "What did we see first that's still rising?",
+  "Which niches have the thinnest supplier competition?",
+];
 
 export default function AskPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "setup">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [note, setNote] = useState("");
+  const [dataSource, setDataSource] = useState<string | null>(null);
 
   async function ask(q: string) {
     if (!q.trim()) return;
-    const next = [...messages, { role: "user" as const, content: q }];
-    setMessages(next); setInput(""); setStatus("loading"); setNote("");
-    const response = await fetch("/api/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: q, history: next.slice(-8) }) });
-    const data = await response.json();
-    if (data.setupRequired) { setStatus("setup"); setNote(data.instructions); return; }
-    if (!response.ok) { setStatus("error"); setNote(data.error || "The analyst could not answer"); return; }
-    setMessages([...next, { role: "assistant", content: data.answer }]); setStatus("idle");
+    const next: Msg[] = [...messages, { role: "user", content: q }];
+    setMessages(next);
+    setInput("");
+    setStatus("loading");
+    setNote("");
+    try {
+      const r = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ question: q }),
+      });
+      const d = await r.json();
+      if (r.status === 401) { setStatus("error"); setNote("Your session expired. Sign in again."); return; }
+      if (r.status === 402) { setStatus("error"); setNote(`Not enough credits. This costs ${d.required} and you have ${d.balance}.`); return; }
+      if (r.status === 429) { setStatus("error"); setNote("You've hit the question limit. It resets shortly."); return; }
+      if (d.setupRequired) { setStatus("error"); setNote(d.instructions || "The analyst is not connected yet."); return; }
+      if (!r.ok) { setStatus("error"); setNote(d.error || "The analyst failed."); return; }
+      setDataSource(d.dataSource ?? null);
+      setMessages([...next, { role: "assistant", content: d.answer }]);
+      setStatus("idle");
+    } catch {
+      setStatus("error");
+      setNote("Could not reach the server. Try again.");
+    }
   }
 
   return (
-    <div className="min-h-screen bg-forest font-sans text-ink">
-      <AppNav active="Ask the Radar" />
-      <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col px-5 py-8 sm:px-8">
-        <div><p className="font-mono text-[10px] uppercase tracking-[.14em] text-grn">Ask the Radar</p><h1 className="mt-2 font-serif text-3xl font-bold tracking-tight sm:text-4xl">Ask the analyst anything</h1><p className="mt-2 text-sm text-mut">Plain-English answers grounded in your live China trend data. The analyst reads the radar for you.</p></div>
-        <div className="mt-6 flex-1 space-y-4 overflow-y-auto rounded-2xl border border-black/10 bg-ivory p-4 sm:p-5">
-          {messages.length === 0 && (
+    <Shell active="Ask">
+      <div className="mx-auto flex max-w-[46rem] flex-col">
+        <div>
+          <h1 className="display-md text-ink">Ask the radar</h1>
+          <p className="mt-1.5 max-w-[58ch] text-[14px] leading-relaxed text-body">
+            Plain questions about the signals in your index. Answers are grounded in the rows we
+            actually recorded, and the reply says which dataset it read.
+          </p>
+        </div>
+
+        <div className="mt-6 min-h-[22rem] space-y-4 rounded-card border border-line bg-surface p-4 sm:p-5">
+          {messages.length === 0 && status !== "error" && (
             <div className="grid gap-2 sm:grid-cols-2">
-              {STARTERS.map((s) => <button key={s} onClick={() => ask(s)} className="rounded-xl border border-black/10 bg-white p-4 text-left text-sm text-ink transition-colors hover:border-grn/40 hover:bg-grn/5">{s}</button>)}
+              {STARTERS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => ask(s)}
+                  className="rounded-ctl border border-line p-3.5 text-left text-[13px] leading-relaxed text-body transition-colors hover:border-accent hover:text-ink"
+                >
+                  {s}
+                </button>
+              ))}
             </div>
           )}
-          {messages.map((m, i) => <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === "user" ? "bg-grn text-white" : "bg-black/5 text-ink"}`}>{m.content}</div></div>)}
-          {status === "loading" && <div className="flex justify-start"><div className="rounded-2xl bg-black/5 px-4 py-3 text-sm text-mut">Reading the radar…</div></div>}
-          {status === "setup" && <div className="rounded-xl border border-[#1d4ed8]/20 bg-[#1d4ed8]/5 p-4 text-sm text-[#334155]"><b>Analyst ready, provider not connected.</b><br />{note}</div>}
-          {status === "error" && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{note}</div>}
+
+          {messages.map((m, i) => (
+            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-[85%] whitespace-pre-wrap rounded-card px-3.5 py-2.5 text-[13.5px] leading-relaxed ${
+                  m.role === "user" ? "bg-accentstrong text-onaccent" : "border border-line bg-canvas text-body"
+                }`}
+              >
+                {m.content}
+              </div>
+            </div>
+          ))}
+
+          {status === "loading" && (
+            <div className="flex justify-start" aria-live="polite">
+              <div className="w-[70%] space-y-2 rounded-card border border-line bg-canvas px-3.5 py-3">
+                <div className="h-3 w-full animate-pulse rounded bg-surface2" />
+                <div className="h-3 w-5/6 animate-pulse rounded bg-surface2" />
+                <div className="h-3 w-2/3 animate-pulse rounded bg-surface2" />
+              </div>
+            </div>
+          )}
+
+          {status === "error" && (
+            <p className="rounded-ctl border border-line bg-negweak px-3 py-2.5 text-[13px] text-neg">{note}</p>
+          )}
         </div>
-        <form onSubmit={(e) => { e.preventDefault(); ask(input); }} className="mt-4 flex gap-2">
-          <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about a niche, a product, a platform…" aria-label="Ask the analyst" className="min-w-0 flex-1 rounded-xl border border-black/15 bg-white px-4 py-3 text-sm text-ink placeholder:text-[#9ca3af] focus:border-grn focus:outline-none focus:ring-4 focus:ring-grn/10" />
-          <button disabled={status === "loading"} className="rounded-xl bg-grn px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1e40af] disabled:opacity-50">Ask</button>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            ask(input);
+          }}
+          className="mt-3 flex gap-2"
+        >
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask about a niche, a product, a platform…"
+            aria-label="Ask the analyst"
+            className="min-w-0 flex-1 rounded-ctl border border-line bg-surface px-3.5 py-2.5 text-[13.5px] text-ink outline-none transition-colors placeholder:text-faint focus:border-accent"
+          />
+          <button
+            disabled={status === "loading"}
+            className="shrink-0 rounded-ctl bg-accentstrong px-4 py-2.5 text-[13px] font-medium text-onaccent transition-opacity hover:opacity-90 active:translate-y-px disabled:opacity-50"
+          >
+            Ask
+          </button>
         </form>
-        <p className="mt-2 font-mono text-[10px] text-mut">2 credits per question when credits are live · answers grounded in your tracked signals</p>
-      </main>
-    </div>
+
+        <p className="mt-2 font-mono text-[11px] text-mut">
+          2 credits per question
+          {dataSource === "seed" && " · answered from sample data, not a live pull"}
+        </p>
+      </div>
+    </Shell>
   );
 }

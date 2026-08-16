@@ -1,10 +1,16 @@
 import Link from "next/link";
+import Logo from "@/components/logo";
+import ThemeToggle from "@/components/theme-toggle";
 
-// Shared top nav for the product (app) pages.
-// Trimmed to the frozen v1 scope: Listing Studio and Agency Briefs were cut, and
-// Movers folded into Radar as a filter rather than standing as its own destination.
+/**
+ * Product nav. Six items, one line, 56px tall — a nav that eats 15% of the viewport
+ * is a marketing-site habit that has no place above a data table.
+ *
+ * Scope is the frozen v1 set: Listing Studio and Agency were cut, Movers folded into
+ * Radar as a filter.
+ */
 const LINKS = [
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Overview" },
   { href: "/radar", label: "Radar" },
   { href: "/analysis", label: "Analysis" },
   { href: "/reports", label: "Reports" },
@@ -14,21 +20,35 @@ const LINKS = [
 
 export default function AppNav({ active }: { active: string }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-black/8 bg-[#f4f1ea]/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-        <Link href="/" className="flex items-center gap-2.5 font-semibold tracking-tight text-ink hover:opacity-80 transition-opacity">
-          <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-hidden="true"><circle cx="13" cy="13" r="11" stroke="#1d4ed8" strokeWidth="2.5"/><circle cx="13" cy="13" r="5.5" stroke="#1d4ed8" strokeWidth="2.5"/><circle cx="13" cy="13" r="1.8" fill="#1d4ed8"/></svg>
-          <span>chinatrendsignal</span>
-        </Link>
-        <nav className="flex items-center gap-1 overflow-x-auto text-sm">
-          {LINKS.map((l) => (
-            <Link key={l.href} href={l.href}
-              className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${active === l.label ? "bg-grn/10 font-medium text-grn" : "text-[#6b6f78] hover:bg-black/5 hover:text-ink"}`}>
-              {l.label}
-            </Link>
-          ))}
+    <header className="sticky top-0 z-20 border-b border-line bg-canvas/85 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-[1240px] items-center gap-6 px-4 sm:px-6">
+        <Logo />
+        <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto text-[13.5px]">
+          {LINKS.map((l) => {
+            const on = active === l.label;
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={on ? "page" : undefined}
+                className={`whitespace-nowrap rounded-ctl px-2.5 py-1.5 transition-colors ${
+                  on ? "bg-surface2 font-medium text-ink" : "text-mut hover:bg-surface2 hover:text-ink"
+                }`}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
         </nav>
-        <Link href="/pricing" className="ml-3 hidden whitespace-nowrap rounded-xl bg-grn px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#1e40af] sm:block">Get access</Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
+          <Link
+            href="/pricing"
+            className="hidden whitespace-nowrap rounded-ctl bg-accentstrong px-3 py-1.5 text-[13px] font-medium text-onaccent transition-opacity hover:opacity-90 active:translate-y-px sm:block"
+          >
+            Upgrade
+          </Link>
+        </div>
       </div>
     </header>
   );

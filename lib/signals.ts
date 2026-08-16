@@ -21,6 +21,10 @@ export type RadarRow = Signal & {
   savesRatio: number | null;
   /** null while the extraction backlog clears; true once confirmed a product. */
   isProduct: boolean | null;
+  /** Engagement over time, oldest first. Drives the inline row sparkline. Empty
+   *  when we have fewer than two observations — we draw nothing rather than
+   *  faking a trend line from a single point. */
+  spark: number[];
 };
 
 export type RadarPayload = {
@@ -62,6 +66,21 @@ export async function getRadar(limit = 40): Promise<RadarPayload> {
 
     if (error || !data || data.length === 0) return seedPayload();
 
+    // One batched query for the observation history behind every returned row,
+    // grouped in memory. Avoids an N+1 round trip per signal.
+    const ids = data.map((r: any) => r.id);
+    const sparks = new Map<string, number[]>();
+    const { data: obs } = await db
+      .from("signal_observations")
+      .select("signal_id, engagement_total, observed_at")
+      .in("signal_id", ids)
+      .order("observed_at", { ascending: true });
+    for (const o of obs ?? []) {
+      const arr = sparks.get(o.signal_id) ?? [];
+      arr.push(Number(o.engagement_total ?? 0));
+      sparks.set(o.signal_id, arr);
+    }
+
     // "partial" is the normal steady state, not a failure: source rotation means a
     // run deliberately covers a slice per night. Only "failed" should be excluded.
     const { data: run } = await db
@@ -98,6 +117,7 @@ export async function getRadar(limit = 40): Promise<RadarPayload> {
         sourceUrl: r.source_url,
         savesRatio: likes > 0 ? Math.round((saves / likes) * 100) / 100 : null,
         isProduct: r.is_product ?? null,
+        spark: (sparks.get(r.id) ?? []).slice(-14),
       };
     });
 
@@ -127,7 +147,7 @@ function platformLabel(p: string) {
 }
 
 function relativeTime(iso: string | null) {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
   if (mins < 60) return `${mins}m`;
   const hours = Math.floor(mins / 60);
@@ -146,6 +166,7 @@ function seedPayload(): RadarPayload {
       sourceUrl: null,
       savesRatio: null,
       isProduct: null,
+      spark: [],
     })),
     lastIngestAt: null,
     lastIngestStatus: null,

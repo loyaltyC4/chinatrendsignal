@@ -43,19 +43,19 @@ function LoginForm() {
 
   if (status === "sent") {
     return (
-      <div className="rounded-2xl border border-black/10 bg-ivory p-8 text-center">
-        <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-grn/10">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" aria-hidden="true">
+      <div className="rounded-card border border-line bg-surface p-8 text-center">
+        <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-accentweak">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c-accent)" strokeWidth="2" aria-hidden="true">
             <path d="M4 6h16v12H4z" /><path d="m4 7 8 6 8-6" />
           </svg>
         </div>
-        <h2 className="font-serif text-2xl text-ink">Check your email</h2>
+        <h2 className="display-sm text-ink">Check your email</h2>
         <p className="mx-auto mt-2 max-w-[38ch] text-sm text-mut">
           We sent a sign-in link to <span className="font-medium text-ink">{email}</span>. It expires in an hour.
         </p>
         <button
           onClick={() => { setStatus("idle"); setMessage(""); }}
-          className="mt-6 text-sm font-medium text-grn underline underline-offset-4 hover:opacity-80"
+          className="mt-6 text-sm font-medium text-accent underline underline-offset-4 hover:opacity-80"
         >
           Use a different email
         </button>
@@ -64,14 +64,14 @@ function LoginForm() {
   }
 
   return (
-    <div className="rounded-2xl border border-black/10 bg-ivory p-8">
-      <h1 className="font-serif text-3xl leading-tight text-ink">Sign in</h1>
+    <div className="rounded-card border border-line bg-surface p-8">
+      <h1 className="display-md text-ink">Sign in</h1>
       <p className="mt-2 text-sm text-mut">
         No password. We email you a link that signs you straight in.
       </p>
 
       {(urlError || status === "error") && (
-        <p className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p className="mt-5 rounded-ctl border border-line bg-negweak px-4 py-3 text-sm text-neg">
           {message || ERRORS[urlError || ""] || "Something went wrong. Try again."}
         </p>
       )}
@@ -88,18 +88,18 @@ function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="w-full rounded-xl border border-black/15 bg-white px-4 py-3.5 text-[15px] text-ink outline-none transition-colors placeholder:text-[#a3a89c] focus:border-grn"
+          className="w-full rounded-ctl border border-line bg-canvas px-4 py-3.5 text-[15px] text-ink outline-none transition-colors placeholder:text-faint focus:border-accent"
         />
         <button
           type="submit"
           disabled={status === "sending"}
-          className="w-full rounded-xl bg-grn py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1e40af] disabled:opacity-60"
+          className="w-full rounded-ctl bg-accentstrong py-3.5 text-[15px] font-medium text-onaccent transition-colors hover:opacity-90 disabled:opacity-60"
         >
           {status === "sending" ? "Sending…" : "Email me a sign-in link"}
         </button>
       </form>
 
-      <p className="mt-6 text-xs leading-relaxed text-[#a3a89c]">
+      <p className="mt-6 text-xs leading-relaxed text-faint">
         New here? The same link creates your account. The free tier never expires and we
         don&apos;t ask for a card.
       </p>
@@ -109,20 +109,20 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-forest px-5 py-16">
+    <main id="main" className="flex min-h-[100dvh] items-center justify-center bg-canvas px-5 py-16">
       <div className="w-full max-w-[27rem]">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5 font-semibold tracking-tight text-ink">
           <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-            <circle cx="13" cy="13" r="11" stroke="#1d4ed8" strokeWidth="2.5" />
-            <circle cx="13" cy="13" r="5.5" stroke="#1d4ed8" strokeWidth="2.5" />
-            <circle cx="13" cy="13" r="1.8" fill="#1d4ed8" />
+            <circle cx="13" cy="13" r="11" stroke="var(--c-accent)" strokeWidth="2.2" />
+            <circle cx="13" cy="13" r="5.5" stroke="var(--c-accent)" strokeWidth="2.5" />
+            <circle cx="13" cy="13" r="1.8" fill="var(--c-accent)" />
           </svg>
           chinatrendsignal
         </Link>
-        <Suspense fallback={<div className="rounded-2xl border border-black/10 bg-ivory p-8 text-sm text-mut">Loading…</div>}>
+        <Suspense fallback={<div className="rounded-card border border-line bg-surface p-8 text-sm text-mut">Loading…</div>}>
           <LoginForm />
         </Suspense>
-        <p className="mt-6 text-center text-xs text-[#a3a89c]">
+        <p className="mt-6 text-center text-xs text-faint">
           <Link href="/" className="underline underline-offset-4 hover:text-mut">Back to the site</Link>
         </p>
       </div>

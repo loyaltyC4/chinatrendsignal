@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import AppNav from "@/components/app-nav";
 import SignalFeed from "@/components/signal-feed";
+import { Shell, PageHead, SourceBadge, Stat } from "@/components/page-shell";
 import { getRadar } from "@/lib/signals";
 
-export const metadata: Metadata = { title: "Radar — China Trend Signal" };
+export const metadata: Metadata = { title: "Radar" };
 export const dynamic = "force-dynamic";
 
-function fmtWhen(iso: string | null) {
+function ago(iso: string | null) {
   if (!iso) return "never";
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
   if (mins < 60) return `${mins}m ago`;
@@ -15,92 +15,96 @@ function fmtWhen(iso: string | null) {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-export default async function RadarPage() {
-  const { source, rows, lastIngestAt } = await getRadar(40);
+export default async function RadarPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ niche?: string }>;
+}) {
+  const { niche } = await searchParams;
+  const { source, rows, lastIngestAt } = await getRadar(60);
 
-  const rising = rows.filter((r) => r.stage === "Rising").length;
-  const withPrice = rows.filter((r) => r.wholesaleCny > 0);
-  const spreads = withPrice
+  const niches = Array.from(new Set(rows.map((r) => r.niche).filter(Boolean))).sort();
+  const visible = niche ? rows.filter((r) => r.niche === niche) : rows;
+
+  const rising = visible.filter((r) => r.stage === "Rising").length;
+  const spreads = visible
+    .filter((r) => r.wholesaleCny > 0 && r.retailAud > 0)
     .map((r) => r.retailAud / (r.wholesaleCny * 0.213))
     .filter((n) => Number.isFinite(n) && n > 0)
     .sort((a, b) => a - b);
   const medianSpread = spreads.length ? spreads[Math.floor(spreads.length / 2)] : null;
-  const tracked = rows.filter((r) => r.daysTracked != null);
-  const oldest = tracked.length ? Math.max(...tracked.map((r) => r.daysTracked!)) : null;
-
-  const KPIS = [
-    { label: "Active signals", value: String(rows.length), delta: source === "live" ? "from the nightly pull" : "sample dataset" },
-    { label: "Rising now", value: String(rising), delta: "accelerating week on week" },
-    { label: "Median spread", value: medianSpread ? `${medianSpread.toFixed(1)}×` : "—", delta: medianSpread ? "wholesale → retail" : "awaiting supplier data" },
-    { label: "Longest tracked", value: oldest != null ? `${oldest}d` : "—", delta: oldest != null ? "since we first saw it" : "no history yet" },
-  ];
-
-  const niches = Array.from(new Set(rows.map((r) => r.niche))).slice(0, 6);
+  const tracked = visible.filter((r) => r.daysTracked != null).map((r) => r.daysTracked!);
+  const oldest = tracked.length ? Math.max(...tracked) : null;
 
   return (
-    <div className="min-h-screen bg-forest font-sans text-ink">
-      <AppNav active="Radar" />
-      <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-serif text-2xl font-bold tracking-tight sm:text-3xl">Radar</h1>
-            <p className="mt-1 text-sm text-mut">
-              Trends moving on Chinese platforms, ranked by momentum and margin.
-            </p>
-          </div>
-          {/* Provenance badge. The whole pitch is data honesty, so the UI states
-              plainly whether these rows came from a real pull or the sample set. */}
-          {source === "live" ? (
-            <span className="flex items-center gap-2 rounded-full border border-grn/25 bg-grn/10 px-3 py-1.5 font-mono text-[11px] text-grn">
-              <span className="h-1.5 w-1.5 rounded-full bg-grn" />
-              Live · pulled {fmtWhen(lastIngestAt)}
-            </span>
-          ) : (
-            <span className="flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 font-mono text-[11px] text-amber-800">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              Sample data · first pull pending
-            </span>
-          )}
+    <Shell active="Radar">
+      <PageHead
+        title="Radar"
+        sub="Products moving on Chinese platforms, ranked by momentum against margin. Every row carries the date we first recorded it."
+        aside={<SourceBadge live={source === "live"} when={ago(lastIngestAt)} />}
+      />
+
+      {source === "seed" && (
+        <div className="mt-6 rounded-card border border-line bg-warnweak px-4 py-3 text-[13px] leading-relaxed text-warn">
+          <b className="font-medium">These are example rows, not live signals.</b> The nightly
+          pull has not produced data for this view yet. First-seen dates read as a dash because
+          we genuinely do not know them.
         </div>
+      )}
 
-        {source === "seed" && (
-          <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <b>These are example rows, not live signals.</b> The nightly pull hasn&apos;t
-            produced data yet, so the radar is showing a fixed sample set. First-seen dates
-            read &ldquo;—&rdquo; because we genuinely don&apos;t know them.
-          </div>
-        )}
+      <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4">
+        <Stat label="Signals" value={String(visible.length)} note={source === "live" ? "from the nightly pull" : "sample dataset"} />
+        <Stat label="Rising" value={String(rising)} note="accelerating week on week" />
+        <Stat
+          label="Median spread"
+          value={medianSpread ? `${medianSpread.toFixed(1)}×` : "-"}
+          note={medianSpread ? "wholesale to implied retail" : "awaiting supplier prices"}
+        />
+        <Stat
+          label="Longest tracked"
+          value={oldest != null ? `${oldest}d` : "-"}
+          note={oldest != null ? "since first detection" : "no history yet"}
+        />
+      </div>
 
-        <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {KPIS.map((k) => (
-            <div key={k.label} className="rounded-xl border border-black/8 bg-black/[.03] px-4 py-4">
-              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#8a8f96]">{k.label}</p>
-              <p className="mt-1 font-mono text-[26px] font-bold leading-none">{k.value}</p>
-              <p className="mt-1.5 text-[11.5px] text-[#8a8f96]">{k.delta}</p>
-            </div>
+      {niches.length > 1 && (
+        <div className="mt-8 flex flex-wrap items-center gap-1.5">
+          <a
+            href="/radar"
+            className={`rounded-ctl border px-2.5 py-1 font-mono text-[11px] transition-colors ${
+              !niche ? "border-accent bg-accentweak text-accent" : "border-line text-mut hover:border-linestrong hover:text-ink"
+            }`}
+          >
+            All
+          </a>
+          {niches.map((n) => (
+            <a
+              key={n}
+              href={`/radar?niche=${encodeURIComponent(n)}`}
+              className={`rounded-ctl border px-2.5 py-1 font-mono text-[11px] transition-colors ${
+                niche === n ? "border-accent bg-accentweak text-accent" : "border-line text-mut hover:border-linestrong hover:text-ink"
+              }`}
+            >
+              {n}
+            </a>
           ))}
+          <span data-numeric className="ml-auto hidden font-mono text-[11px] text-faint sm:block">
+            {visible.length} of {rows.length}
+          </span>
         </div>
+      )}
 
-        {niches.length > 0 && (
-          <div className="mt-7 flex flex-wrap gap-2">
-            <span className="rounded-full border border-grn/40 bg-grn/10 px-3.5 py-1.5 font-mono text-[11px] text-grn">All niches</span>
-            {niches.map((f) => (
-              <span key={f} className="rounded-full border border-black/10 px-3.5 py-1.5 font-mono text-[11px] text-[#6b6f78]">{f}</span>
-            ))}
-            <span className="ml-auto hidden font-mono text-[11px] text-[#8a8f96] sm:block">{rows.length} signals</span>
-          </div>
-        )}
+      <div className="mt-4">
+        <SignalFeed signals={visible} />
+      </div>
 
-        <div className="mt-4">
-          <SignalFeed signals={rows} />
-        </div>
-
-        <p className="mt-4 max-w-[80ch] font-mono text-[11px] leading-relaxed text-[#8a8f96]">
-          Intent = saves-to-likes ratio on Xiaohongshu (bookmark-to-buy). Spread = implied retail
-          AUD vs 1688 wholesale (CNY→AUD). First seen = when this signal first entered our
-          index, never back-dated. We do not estimate store revenue.
-        </p>
-      </main>
-    </div>
+      <p className="mt-5 max-w-[86ch] text-[11.5px] leading-relaxed text-mut">
+        <span className="font-mono">Intent</span> is the saves-to-likes ratio on Xiaohongshu, our
+        bookmark-to-buy proxy. <span className="font-mono">Spread</span> compares implied AUD retail
+        against the median 1688 wholesale offer and is marked <span className="font-mono">est.</span>{" "}
+        because it is inferred, not measured. <span className="font-mono">First seen</span> is when a
+        signal entered our index and is never back-dated. We do not estimate store revenue.
+      </p>
+    </Shell>
   );
 }
