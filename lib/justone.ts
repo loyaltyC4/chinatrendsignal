@@ -95,10 +95,14 @@ export async function callJustOne<T = unknown>(
  * ------------------------------------------------------------------ */
 
 /** Douyin hot content. The upstream discovery call — no keyword needed. */
-export const douyinHotSearch = (opts: { contentType?: string; sortType?: string; page?: number } = {}) =>
+export const douyinHotSearch = (opts: { contentType?: string; sortType?: string; page?: number; videoType?: string } = {}) =>
   callJustOne<any>("/api/douyin/hot-search/v1", {
     contentType: opts.contentType ?? "ALL",
     sortType: opts.sortType ?? "HIGH_INTERACTION",
+    // XINGTU_VIDEO restricts results to commercial/sponsored content. The default
+    // (ALL) returns viral entertainment — cats, skits, scenery — which is trending
+    // content but not trending *product*, and is useless for sourcing.
+    videoType: opts.videoType ?? "XINGTU_VIDEO",
     page: opts.page ?? 1,
   });
 

@@ -431,6 +431,8 @@ export async function probeShapes(): Promise<any[]> {
     ["XHS hot list", () => xhsHotList()],
     ["Douyin hot search", () => douyinHotSearch({ contentType: "HOME_LIVING" })],
     ["1688 product search", () => wholesaleSearch("宠物梳")],
+    ["XHS note search", () => callJustOne("/api/xiaohongshu/search-note/v2", { keyword: "居家好物推荐", page: 1, sort: "collect_descending" })],
+    ["Douyin xingtu", () => douyinHotSearch({ contentType: "HOME_LIVING", videoType: "XINGTU_VIDEO" })],
   ];
   const out: any[] = [];
   for (const [label, fn] of probes) {
