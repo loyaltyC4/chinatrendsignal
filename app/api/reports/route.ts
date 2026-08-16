@@ -3,7 +3,7 @@ import { enrichWithClaude, isClaudeConfigured } from "@/lib/claude";
 import { debitCredits, refundCredits, InsufficientCredits } from "@/lib/credits";
 import { guardPaidRoute } from "@/lib/guard";
 import { requireUser } from "@/lib/auth";
-import { SIGNALS } from "@/lib/radar-data";
+import { getSignalsForNiche } from "@/lib/signals";
 
 export async function POST(req: NextRequest) {
   const { user, error: authError } = await requireUser();
@@ -16,10 +16,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null) as { niche?: string } | null;
   if (!body?.niche) return NextResponse.json({ error: "Expected a niche" }, { status: 400 });
 
-  // Signals are read server-side from our own dataset. The previous version took
-  // them from the request body, which let a caller generate a report about anything
-  // and present it as our data.
-  const rows = SIGNALS.filter((s) => s.niche === body.niche);
+  // Signals are read server-side from the cache. The previous version took them
+  // from the request body, which let a caller generate a report about anything and
+  // present it as our data.
+  const rows = await getSignalsForNiche(body.niche);
   if (!rows.length) {
     return NextResponse.json({ error: "No signals for that niche" }, { status: 404 });
   }

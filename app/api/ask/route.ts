@@ -3,7 +3,7 @@ import { enrichWithClaude, isClaudeConfigured } from "@/lib/claude";
 import { debitCredits, refundCredits, InsufficientCredits } from "@/lib/credits";
 import { guardPaidRoute } from "@/lib/guard";
 import { requireUser } from "@/lib/auth";
-import { SIGNALS } from "@/lib/radar-data";
+import { getRadar } from "@/lib/signals";
 
 export async function POST(req: NextRequest) {
   const { user, error: authError } = await requireUser();
@@ -31,17 +31,22 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // TODO(phase-3): SIGNALS is still the hardcoded seed table. Until the nightly
-    // cache lands, the analyst is reasoning over sample rows, so the UI labels it as such.
+    // Grounded in the cache. getRadar falls back to the seed set when the nightly
+    // pull has not produced rows yet, and reports which it returned.
+    const { rows, source } = await getRadar(12);
     const result = await enrichWithClaude("signal_explanation", {
       name: body.question,
       category: "Analyst question",
       signals: { stage: "Rising" },
       market: {},
-      reviews: SIGNALS.slice(0, 12).map((s) => ({ platform: s.sources[0] || "Radar", text: `${s.product} — ${s.zh}; velocity +${s.velocityPct}%; intent ${s.intent}; spread ${s.retailAud}s vs ¥${s.wholesaleCny}` })),
+      reviews: rows.map((s) => ({
+        platform: s.sources[0] || "Radar",
+        text: `${s.product}${s.zh ? ` — ${s.zh}` : ""}; velocity +${s.velocityPct}%; intent ${s.intent}; wholesale ¥${s.wholesaleCny}${s.daysTracked != null ? `; first seen ${s.daysTracked}d ago` : ""}`,
+      })),
     });
     const answer = [result.executiveSummary, result.actions.length ? `\n\nNext moves:\n${result.actions.map((a) => `• ${a}`).join("\n")}` : ""].filter(Boolean).join("");
-    return NextResponse.json({ ok: true, answer, credit: debit });
+    // Tell the caller which dataset the answer came from, so the UI can say so.
+    return NextResponse.json({ ok: true, answer, dataSource: source, credit: debit });
   } catch (error) {
     await refundCredits({ userId: user.id, action: "signal_explanation", reference });
     return NextResponse.json({ error: error instanceof Error ? error.message : "Analyst failed" }, { status: 500 });

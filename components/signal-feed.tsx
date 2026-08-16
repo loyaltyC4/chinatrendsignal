@@ -16,14 +16,17 @@ export type Signal = {
   retailAud: number;
   sources: string[];   // e.g. ["Douyin","XHS","1688"]
   refreshed: string;
+  /** Set only on live rows: days since we first recorded this signal. This is the
+   *  earlier-signal claim made checkable, so it must never be faked for seed rows. */
+  daysTracked?: number | null;
 };
 
 export default function SignalFeed({ signals }: { signals: Signal[] }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-[#fbf9f4] overflow-hidden">
       {/* header row */}
-      <div className="grid grid-cols-[1.6fr_.7fr_.9fr_.7fr_.9fr_.8fr] max-md:grid-cols-[1.4fr_.8fr_.9fr] items-center gap-2 border-b border-black/10 px-5 py-3 font-mono text-[10.5px] uppercase tracking-[0.1em] text-[#8a8f96]">
-        <span>Signal</span><span>Stage</span><span>Velocity</span><span>Intent</span><span>Margin</span><span className="max-md:hidden">Sources</span>
+      <div className="grid grid-cols-[1.6fr_.7fr_.85fr_.65fr_.8fr_.7fr_.7fr] max-md:grid-cols-[1.4fr_.8fr_.9fr] items-center gap-2 border-b border-black/10 px-5 py-3 font-mono text-[10.5px] uppercase tracking-[0.1em] text-[#8a8f96]">
+        <span>Signal</span><span>Stage</span><span>Velocity</span><span>Intent</span><span>Margin</span><span className="max-md:hidden">First seen</span><span className="max-md:hidden">Sources</span>
       </div>
       {signals.map((s) => <SignalRow key={s.id} s={s} />)}
     </div>
@@ -43,7 +46,7 @@ function SignalRow({ s }: { s: Signal }) {
   const stageColor = s.stage === "Rising" ? "#22c55e" : s.stage === "Peaking" ? "#f59e0b" : "#8a8f96";
   const href = `/analysis?product=${encodeURIComponent(s.product)}&zh=${encodeURIComponent(s.zh)}&niche=${encodeURIComponent(s.niche)}&stage=${s.stage}&velocity=${s.velocityPct}&intent=${s.intent}&wholesale=${s.wholesaleCny}&retail=${s.retailAud}`;
   return (
-    <Link href={href} className="grid w-full grid-cols-[1.6fr_.7fr_.9fr_.7fr_.9fr_.8fr] max-md:grid-cols-[1.4fr_.8fr_.9fr] items-center gap-2 border-b border-black/5 px-5 py-4 text-left transition-colors last:border-b-0 hover:bg-black/[.03]">
+    <Link href={href} className="grid w-full grid-cols-[1.6fr_.7fr_.85fr_.65fr_.8fr_.7fr_.7fr] max-md:grid-cols-[1.4fr_.8fr_.9fr] items-center gap-2 border-b border-black/5 px-5 py-4 text-left transition-colors last:border-b-0 hover:bg-black/[.03]">
       {/* product */}
       <span className="min-w-0">
         <span className="block truncate text-sm font-medium text-[#1a1b20]">{s.product}</span>
@@ -65,6 +68,10 @@ function SignalRow({ s }: { s: Signal }) {
       </span>
       {/* margin */}
       <span className="font-mono text-[13px] font-semibold text-[#1a1b20]">{spread.toFixed(1)}×</span>
+      {/* first seen — the provenance column. Em dash when we genuinely don't know. */}
+      <span className="max-md:hidden font-mono text-[11.5px] text-[#6b6f78]">
+        {s.daysTracked == null ? "—" : s.daysTracked === 0 ? "today" : `${s.daysTracked}d ago`}
+      </span>
       {/* sources */}
       <span className="max-md:hidden flex gap-1">
         {s.sources.map((src) => (
