@@ -3,6 +3,7 @@ import {
   callJustOne,
   douyinHotSearch,
   xhsHotList,
+  xhsNoteSearch,
   wholesaleSearch,
   type JustOneResult,
 } from "@/lib/justone";
@@ -21,14 +22,43 @@ import {
  * stored in signals.raw so a shape change can be diagnosed without re-fetching.
  */
 
-const DISCOVERY_CATEGORIES: Array<{ contentType: string; niche: string }> = [
+/**
+ * Discovery sources, product-first.
+ *
+ * The first live run used the Douyin/XHS generic hot lists and returned viral
+ * entertainment — a walrus, a cat, travel photography — because those endpoints rank
+ * *content*, not merchandise. Both sources below are constrained to commerce:
+ * Douyin to sponsored (XINGTU) video, XHS to save-ranked "good buy" keyword searches.
+ */
+const DOUYIN_CATEGORIES: Array<{ contentType: string; niche: string }> = [
   { contentType: "HOME_LIVING", niche: "Home & living" },
   { contentType: "ANIMAL", niche: "Pet care" },
-  { contentType: "FOOD", niche: "Food & snacks" },
   { contentType: "MOTHER_BABY", niche: "Mother & baby" },
   { contentType: "FASHION", niche: "Fashion" },
   { contentType: "SPORTS", niche: "Sports & outdoors" },
+  { contentType: "FOOD", niche: "Food & snacks" },
 ];
+
+/** Chinese shopping-intent phrases. "好物"/"神器" are the standard product-rec markers. */
+const XHS_KEYWORDS: Array<{ keyword: string; niche: string }> = [
+  { keyword: "居家好物推荐", niche: "Home & living" },
+  { keyword: "宠物用品好物", niche: "Pet care" },
+  { keyword: "厨房神器", niche: "Kitchen" },
+  { keyword: "美妆好物推荐", niche: "Beauty" },
+  { keyword: "母婴好物", niche: "Mother & baby" },
+  { keyword: "健身装备推荐", niche: "Sports & outdoors" },
+];
+
+/**
+ * Rotate which slice of sources each nightly run covers. A full sweep does not fit
+ * in one 60s function, so we take a different window each day and let coverage build
+ * across the week rather than truncating the same prefix every night.
+ */
+function rotate<T>(arr: T[], take: number): T[] {
+  const day = Math.floor(Date.now() / 86_400_000);
+  const start = (day * take) % arr.length;
+  return Array.from({ length: Math.min(take, arr.length) }, (_, i) => arr[(start + i) % arr.length]);
+}
 
 export type EndpointResult = {
   endpoint: string;
@@ -106,6 +136,36 @@ export function parseXhsHotList(data: any): Extracted[] {
         engagement: num(it.hot_value) ?? num(it.hot),
         trend: typeof it.trend === "string" ? it.trend : null,
         raw: it,
+      };
+    })
+    .filter(Boolean) as Extracted[];
+}
+
+/**
+ * XHS note search: data.items[].note
+ * This is the better product source. `collected_count` is the save count — the
+ * bookmark-to-buy signal — which the generic hot list does not expose at all.
+ */
+export function parseXhsNotes(data: any): Extracted[] {
+  const items = Array.isArray(data?.items) ? data.items : [];
+  return items
+    .map((wrap: any): Extracted | null => {
+      const n = wrap?.note ?? wrap;
+      const title = (typeof n?.desc === "string" && n.desc.trim())
+        || (typeof n?.abstract_show === "string" && n.abstract_show.trim())
+        || (typeof n?.title === "string" && n.title.trim()) || "";
+      if (!title) return null;
+      return {
+        title,
+        sourceUrl: n.id ? `https://www.xiaohongshu.com/explore/${n.id}` : null,
+        imageUrl: n?.images_list?.[0]?.url ?? null,
+        likes: num(n.liked_count) ?? num(n.likes) ?? num(n?.interact_info?.liked_count),
+        saves: num(n.collected_count) ?? num(n?.interact_info?.collected_count),
+        comments: num(n.comments_count) ?? num(n?.interact_info?.comment_count),
+        shares: num(n.shared_count) ?? num(n?.interact_info?.shared_count),
+        engagement: null,
+        trend: null,
+        raw: n,
       };
     })
     .filter(Boolean) as Extracted[];
@@ -246,32 +306,31 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
   };
 
   try {
-    /* ---- Stage A: discovery (cheap, no keyword required) ---- */
+    /* ---- Stage A: discovery (product-constrained sources) ---- */
 
-    if (canCall()) {
+    for (const kw of rotate(XHS_KEYWORDS, 3)) {
+      if (!canCall()) { stoppedEarly = stoppedEarly || "Budget exhausted during XHS discovery"; break; }
       callsMade++;
-      const r = await xhsHotList();
-      const items = r.ok ? parseXhsHotList(r.data) : [];
-      note("XHS hot list", r, items.length);
+      const r = await xhsNoteSearch(kw.keyword);
+      const items = r.ok ? parseXhsNotes(r.data) : [];
+      note(`XHS notes · ${kw.keyword}`, r, items.length);
       if (r.ok) {
-        const res = await persist(items, "xiaohongshu", null);
+        const res = await persist(items, "xiaohongshu", kw.niche);
         inserted += res.inserted;
         updated += res.updated;
       } else if (r.fatal) {
-        stoppedEarly = `XHS hot list returned ${r.code}: ${r.message}`;
+        stoppedEarly = `XHS note search returned ${r.code}: ${r.message}`;
+        break;
       }
     }
 
-    for (const cat of DISCOVERY_CATEGORIES) {
+    for (const cat of rotate(DOUYIN_CATEGORIES, 3)) {
       if (stoppedEarly) break;
-      if (!canCall()) {
-        stoppedEarly = stoppedEarly || "Ran out of time or call budget during discovery";
-        break;
-      }
+      if (!canCall()) { stoppedEarly = stoppedEarly || "Budget exhausted during Douyin discovery"; break; }
       callsMade++;
-      const r = await douyinHotSearch({ contentType: cat.contentType });
+      const r = await douyinHotSearch({ contentType: cat.contentType, videoType: "XINGTU_VIDEO" });
       const items = r.ok ? parseDouyinHotSearch(r.data) : [];
-      note(`Douyin hot search · ${cat.contentType}`, r, items.length);
+      note(`Douyin xingtu · ${cat.contentType}`, r, items.length);
       if (r.ok) {
         const res = await persist(items, "douyin", cat.niche);
         inserted += res.inserted;
@@ -421,7 +480,7 @@ function countFor(label: string, data: any): number {
   if (label.includes("XHS hot list")) return parseXhsHotList(data).length;
   if (label.includes("Douyin")) return parseDouyinHotSearch(data).length;
   if (label.includes("1688")) return parse1688Items(data).length;
-  if (label.includes("XHS note")) return Array.isArray(data?.items) ? data.items.length : 0;
+  if (label.includes("XHS note")) return parseXhsNotes(data).length;
   if (label.includes("Taobao")) return parse1688Items(data).length;
   return 0;
 }
