@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guardPaidRoute } from "@/lib/guard";
 
 // POST /api/listing — the real listing pipeline.
 // Body: { url: string }  (a 1688 / Taobao / XHS product URL)
@@ -13,6 +14,10 @@ const TOKEN = process.env.JUSTONEAPI_TOKEN;
 const WORKER_URL = process.env.LISTING_WORKER_URL; // e.g. a Railway/Render Python service
 
 export async function POST(req: NextRequest) {
+  // Burns the JustOne token even with the worker offline, so it is guarded too.
+  const blocked = guardPaidRoute(req, "listing", { limit: 10 });
+  if (blocked) return blocked;
+
   const { url } = await req.json().catch(() => ({}));
   if (!url || typeof url !== "string") {
     return NextResponse.json({ error: "Missing product url" }, { status: 400 });

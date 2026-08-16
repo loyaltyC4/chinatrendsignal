@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { enrichWithClaude, isClaudeConfigured } from "@/lib/claude";
 import { debitCredits } from "@/lib/credits";
+import { guardPaidRoute } from "@/lib/guard";
 
 export async function POST(req: NextRequest) {
+  // Reports are the most expensive Claude call we make, so the window is tighter.
+  const blocked = guardPaidRoute(req, "reports", { limit: 5 });
+  if (blocked) return blocked;
+
   const body = await req.json().catch(() => null) as { niche?: string; signals?: Array<{ product: string; velocityPct: number; intent: number; wholesaleCny: number; retailAud: number }>; userId?: string } | null;
   if (!body?.niche || !Array.isArray(body.signals)) return NextResponse.json({ error: "Expected niche and signals" }, { status: 400 });
   if (!isClaudeConfigured()) return NextResponse.json({ setupRequired: true, error: "Reports are not connected yet", instructions: "Add ANTHROPIC_API_KEY in Vercel environment variables for Production and Preview.", creditCost: 10 }, { status: 503 });

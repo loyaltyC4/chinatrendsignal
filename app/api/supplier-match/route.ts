@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { debitCredits } from "@/lib/credits";
+import { guardPaidRoute } from "@/lib/guard";
 
 const BASE = "https://api.justoneapi.com";
 
 export async function POST(req: NextRequest) {
+  // Stopgap until auth + ledger enforcement land. See lib/guard.ts.
+  const blocked = guardPaidRoute(req, "supplier-match", { limit: 10 });
+  if (blocked) return blocked;
+
   const body = await req.json().catch(() => null) as { keyword?: string; userId?: string } | null;
   const keyword = body?.keyword?.trim();
   if (!keyword) {

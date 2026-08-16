@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { enrichWithClaude, isClaudeConfigured } from "@/lib/claude";
 import { debitCredits } from "@/lib/credits";
 import { SIGNALS } from "@/lib/radar-data";
+import { guardPaidRoute } from "@/lib/guard";
 
 export async function POST(req: NextRequest) {
+  // Chat invites repeat calls, so the per-hour allowance is higher than the other routes.
+  const blocked = guardPaidRoute(req, "ask", { limit: 20 });
+  if (blocked) return blocked;
+
   const body = await req.json().catch(() => null) as { question?: string; history?: Array<{ role: string; content: string }>; userId?: string } | null;
   if (!body?.question?.trim()) return NextResponse.json({ error: "Ask a question" }, { status: 400 });
   if (!isClaudeConfigured()) {

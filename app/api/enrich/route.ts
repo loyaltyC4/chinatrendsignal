@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { enrichWithClaude, isClaudeConfigured } from "@/lib/claude";
 import { debitCredits } from "@/lib/credits";
+import { guardPaidRoute } from "@/lib/guard";
 import type { AnalysisKind, ProductContext } from "@/lib/analysis-types";
 
 const VALID = new Set<AnalysisKind>([
@@ -8,6 +9,10 @@ const VALID = new Set<AnalysisKind>([
 ]);
 
 export async function POST(req: NextRequest) {
+  // Stopgap until auth + ledger enforcement land. See lib/guard.ts.
+  const blocked = guardPaidRoute(req, "enrich", { limit: 10 });
+  if (blocked) return blocked;
+
   const body = await req.json().catch(() => null) as { kind?: AnalysisKind; context?: ProductContext; userId?: string } | null;
   if (!body?.kind || !VALID.has(body.kind) || !body.context?.name) {
     return NextResponse.json({ error: "Expected kind and product context" }, { status: 400 });
