@@ -318,6 +318,55 @@ async function persist(items: any[], platform: string, niche: string | null) {
 }
 
 /**
+ * Describe the shape of a payload without dumping it. JustOne does not document
+ * response fields, and the token is a sensitive env var we cannot use from outside
+ * the deployment, so this is how we learn the real structure safely.
+ */
+export function describeShape(data: any, depth = 0): any {
+  if (data === null || data === undefined) return typeof data;
+  if (Array.isArray(data)) {
+    return {
+      __array: data.length,
+      first: data.length && depth < 3 ? describeShape(data[0], depth + 1) : undefined,
+    };
+  }
+  if (typeof data === "object") {
+    const out: Record<string, any> = {};
+    for (const [k, v] of Object.entries(data).slice(0, 40)) {
+      if (Array.isArray(v)) out[k] = { __array: v.length, first: depth < 3 && v.length ? describeShape(v[0], depth + 1) : undefined };
+      else if (v && typeof v === "object") out[k] = depth < 3 ? describeShape(v, depth + 1) : "object";
+      else if (typeof v === "string") out[k] = `string(${v.slice(0, 40)})`;
+      else out[k] = typeof v;
+    }
+    return out;
+  }
+  if (typeof data === "string") return `string(${data.slice(0, 40)})`;
+  return typeof data;
+}
+
+export async function probeShapes(): Promise<any[]> {
+  const probes: Array<[string, () => Promise<JustOneResult<any>>]> = [
+    ["XHS hot list", () => xhsHotList()],
+    ["Douyin hot search", () => douyinHotSearch({ contentType: "HOME_LIVING" })],
+    ["1688 product search", () => wholesaleSearch("宠物梳")],
+  ];
+  const out: any[] = [];
+  for (const [label, fn] of probes) {
+    const r = await fn();
+    out.push({
+      label,
+      endpoint: r.endpoint,
+      ok: r.ok,
+      code: r.code,
+      message: r.ok ? undefined : (r as any).message,
+      extractedByCurrentParser: r.ok ? pickArray(r.data).length : 0,
+      shape: r.ok ? describeShape(r.data) : null,
+    });
+  }
+  return out;
+}
+
+/**
  * Probe every endpoint once with the cheapest possible parameters and report which
  * are actually enabled on this token. Needed because the token is a sensitive env
  * var we cannot read from outside the deployment.

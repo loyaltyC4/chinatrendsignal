@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runIngest, probeEndpoints } from "@/lib/ingest";
+import { runIngest, probeEndpoints, probeShapes } from "@/lib/ingest";
 import { isJustOneConfigured } from "@/lib/justone";
 import { isServiceRoleConfigured } from "@/lib/supabase/server";
 
@@ -36,6 +36,11 @@ export async function GET(req: NextRequest) {
   }
   if (!isServiceRoleConfigured()) {
     return NextResponse.json({ error: "Supabase service role is not configured" }, { status: 503 });
+  }
+
+  if (req.nextUrl.searchParams.get("shape") === "1") {
+    // Structure-only inspection: key names and types, never bulk content.
+    return NextResponse.json({ mode: "shape", results: await probeShapes() });
   }
 
   if (req.nextUrl.searchParams.get("probe") === "1") {
