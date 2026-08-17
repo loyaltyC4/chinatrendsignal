@@ -1,4 +1,5 @@
 import { getRadar } from "@/lib/signals";
+import { platformStyle } from "@/lib/platform-style";
 
 /**
  * The hero asset is the real radar, reading the real database — not a screenshot,
@@ -37,12 +38,20 @@ export default async function HeroRadar() {
             key={r.id}
             className="grid grid-cols-[minmax(0,1.7fr)_.7fr_.6fr] items-center gap-3 border-b border-line px-4 py-2.5 last:border-b-0"
           >
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-medium text-ink">{r.product}</p>
-              <p className="truncate font-mono text-[10.5px] text-faint">
-                {r.zh ? `${r.zh} · ` : ""}
-                {r.sources[0]}
-              </p>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md font-mono text-[9px] font-semibold uppercase"
+                style={{ background: platformStyle(r.sources[0] ?? "").bg, color: platformStyle(r.sources[0] ?? "").fg }}
+                aria-hidden
+              >
+                {platformStyle(r.sources[0] ?? "").label.slice(0, 2)}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-[13px] font-medium text-ink">{r.product}</span>
+                <span className="block truncate font-mono text-[10.5px]" style={{ color: platformStyle(r.sources[0] ?? "").fg }}>
+                  {r.zh ? `${r.zh} · ` : ""}{platformStyle(r.sources[0] ?? "").label}
+                </span>
+              </span>
             </div>
             <span
               data-numeric

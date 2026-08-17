@@ -60,24 +60,42 @@ export default function Home() {
       <MarketingNav />
 
       <main id="main">
-        {/* 1. HERO: asymmetric split */}
-        <section className="mx-auto grid max-w-[1160px] items-center gap-12 px-5 pt-16 pb-14 sm:px-8 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:pt-20">
-          <div>
-            <h1 className="display-xl max-w-[16ch] text-ink">Find it, cost it, sell it before the window shuts.</h1>
-            <p className="mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-body">
-              We index what Chinese shoppers are saving on Douyin and Xiaohongshu, match it to a
-              factory price on 1688, and log the date we first saw it.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/login" className="rounded-ctl bg-accentstrong px-5 py-2.5 text-[14px] font-medium text-onaccent transition-opacity hover:opacity-90 active:translate-y-px">
-                Get started
-              </Link>
-              <Link href="/pricing" className="rounded-ctl border border-linestrong px-5 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-surface2 active:translate-y-px">
-                See pricing
-              </Link>
+        {/* 1. HERO: asymmetric split over a spectrum wash built from the platform hues */}
+        <section className="spectrum-wash">
+          <div className="mx-auto grid max-w-[1160px] items-center gap-12 px-5 pt-16 pb-14 sm:px-8 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:pt-20">
+            <div>
+              <h1 className="display-xl max-w-[16ch] text-ink">
+                See it in China <span className="spectrum-text">before</span> the window shuts.
+              </h1>
+              <p className="mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-body">
+                We index what Chinese shoppers are saving on Douyin and Xiaohongshu, match it to a
+                factory price on 1688, and log the date we first saw it.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Link href="/login" className="rounded-ctl bg-accentstrong px-5 py-2.5 text-[14px] font-medium text-onaccent transition-opacity hover:opacity-90 active:translate-y-px">
+                  Get started
+                </Link>
+                <Link href="/pricing" className="rounded-ctl border border-linestrong px-5 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-surface2 active:translate-y-px">
+                  See pricing
+                </Link>
+              </div>
+              {/* platform legend: the four hues, stated once, so the coding reads as intentional */}
+              <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2">
+                {[
+                  ["Douyin", "var(--c-douyin)"],
+                  ["Xiaohongshu", "var(--c-xhs)"],
+                  ["1688", "var(--c-1688)"],
+                  ["Taobao", "var(--c-taobao)"],
+                ].map(([name, hue]) => (
+                  <span key={name} className="flex items-center gap-1.5 font-mono text-[11px] text-mut">
+                    <span className="h-2 w-2 rounded-full" style={{ background: hue }} />
+                    {name}
+                  </span>
+                ))}
+              </div>
             </div>
+            <HeroRadar />
           </div>
-          <HeroRadar />
         </section>
 
         {/* 2. LIVE FEED: full-width data band */}
@@ -105,13 +123,23 @@ export default function Home() {
           </p>
 
           <div className="mt-12 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-            {CHECKS.map((c, i) => (
-              <div key={c.t} className="bg-surface p-6">
-                <span data-numeric className="font-mono text-[11px] text-accent">0{i + 1}</span>
-                <p className="mt-3 text-[14.5px] font-medium leading-snug text-ink">{c.t}</p>
-                <p className="mt-2 text-[13px] leading-relaxed text-mut">{c.d}</p>
-              </div>
-            ))}
+            {CHECKS.map((c, i) => {
+              const hue = ["var(--c-xhs)", "var(--c-taobao)", "var(--c-1688)", "var(--c-douyin)"][i];
+              return (
+                <div key={c.t} className="relative bg-surface p-6">
+                  <span className="absolute inset-x-0 top-0 h-[3px]" style={{ background: hue }} />
+                  <span
+                    data-numeric
+                    className="flex h-8 w-8 items-center justify-center rounded-md font-mono text-[12px] font-semibold"
+                    style={{ background: `color-mix(in oklab, ${hue} 14%, transparent)`, color: hue }}
+                  >
+                    {i + 1}
+                  </span>
+                  <p className="mt-4 text-[14.5px] font-medium leading-snug text-ink">{c.t}</p>
+                  <p className="mt-2 text-[13px] leading-relaxed text-mut">{c.d}</p>
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -212,13 +240,16 @@ export default function Home() {
         <section className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
           <h2 className="display-lg max-w-[20ch] text-ink">Three steps, under three minutes.</h2>
           <ol className="mt-10 grid gap-8 md:grid-cols-3 md:gap-6">
-            {STEPS.map((s) => (
-              <li key={s.n} className="border-t-2 border-accent pt-5">
-                <span data-numeric className="font-mono text-[12px] text-accent">{s.n}</span>
-                <p className="mt-2 text-[16px] font-medium text-ink">{s.t}</p>
-                <p className="mt-2 max-w-[38ch] text-[13.5px] leading-relaxed text-body">{s.d}</p>
-              </li>
-            ))}
+            {STEPS.map((step, i) => {
+              const hue = ["var(--c-xhs)", "var(--c-1688)", "var(--c-douyin)"][i];
+              return (
+                <li key={step.n} className="pt-5" style={{ borderTop: `2px solid ${hue}` }}>
+                  <span data-numeric className="font-mono text-[12px]" style={{ color: hue }}>{step.n}</span>
+                  <p className="mt-2 text-[16px] font-medium text-ink">{step.t}</p>
+                  <p className="mt-2 max-w-[38ch] text-[13.5px] leading-relaxed text-body">{step.d}</p>
+                </li>
+              );
+            })}
           </ol>
         </section>
 
@@ -282,6 +313,7 @@ export default function Home() {
         {/* 11. CLOSING BAND */}
         <section className="border-t border-line bg-surface">
           <div className="mx-auto max-w-[1160px] px-5 py-20 text-center sm:px-8">
+            <hr className="spectrum-rule mx-auto mb-10 w-24 rounded-full" />
             <h2 className="display-lg mx-auto max-w-[22ch] text-ink">
               Your next product is trending in China right now.
             </h2>

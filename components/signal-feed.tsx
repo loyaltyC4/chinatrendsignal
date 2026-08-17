@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import SupplierMatchButton from "@/components/supplier-match-button";
+import { platformStyle } from "@/lib/platform-style";
 
 /**
  * The radar row — the product's core surface.
@@ -68,12 +69,21 @@ function Spark({ points }: { points: number[] }) {
 }
 
 function Provenance({ source, estimated }: { source: string; estimated?: boolean }) {
+  // Platform badges carry the coded hue; the "est." marker stays neutral so it
+  // reads as a caveat rather than a source.
+  const p = platformStyle(source);
+  const style = estimated
+    ? undefined
+    : { background: p.bg, color: p.fg };
   return (
     <span
-      className="inline-flex shrink-0 items-center rounded-chip border border-line px-1.5 py-px font-mono text-[9.5px] tracking-wide text-mut"
-      title={estimated ? "Inferred from the wholesale price, not measured" : `Measured on ${source}`}
+      className={`inline-flex shrink-0 items-center rounded-chip px-1.5 py-px font-mono text-[9.5px] tracking-wide ${
+        estimated ? "border border-line text-mut" : ""
+      }`}
+      style={style}
+      title={estimated ? "Inferred from the wholesale price, not measured" : `Measured on ${p.label}`}
     >
-      {estimated ? "est." : source}
+      {estimated ? "est." : p.label}
     </span>
   );
 }

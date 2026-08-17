@@ -1,4 +1,5 @@
 import { getRadar } from "@/lib/signals";
+import { platformStyle } from "@/lib/platform-style";
 
 /**
  * "Latest signals, logged live" — the direct analogue of bidcheck's
@@ -8,12 +9,6 @@ import { getRadar } from "@/lib/signals";
  * Reads the real index. Falls back to the seed set and says so.
  */
 
-const PLATFORM: Record<string, { label: string; fg: string; bg: string }> = {
-  XHS: { label: "Xiaohongshu", fg: "var(--c-neg)", bg: "var(--c-neg-weak)" },
-  Douyin: { label: "Douyin", fg: "var(--c-pos)", bg: "var(--c-pos-weak)" },
-  "1688": { label: "1688", fg: "var(--c-warn)", bg: "var(--c-warn-weak)" },
-  Taobao: { label: "Taobao", fg: "var(--c-accent)", bg: "var(--c-accent-weak)" },
-};
 
 export default async function LiveSignals({ limit = 6 }: { limit?: number }) {
   const { rows, source } = await getRadar(limit);
@@ -52,11 +47,7 @@ export default async function LiveSignals({ limit = 6 }: { limit?: number }) {
         )}
 
         {rows.map((r) => {
-          const p = PLATFORM[r.sources[0] ?? ""] ?? {
-            label: r.sources[0] ?? "Radar",
-            fg: "var(--c-muted)",
-            bg: "var(--c-surface-2)",
-          };
+          const p = platformStyle(r.sources[0] ?? "");
           return (
             <div
               key={r.id}
@@ -78,7 +69,11 @@ export default async function LiveSignals({ limit = 6 }: { limit?: number }) {
               </div>
               <div className="text-right">
                 {r.savesRatio != null ? (
-                  <span data-numeric className="font-mono text-[13px] font-medium text-ink">
+                  <span
+                    data-numeric
+                    className="font-mono text-[13px] font-semibold"
+                    style={{ color: r.savesRatio >= 0.7 ? "var(--c-douyin)" : r.savesRatio >= 0.4 ? "var(--c-1688)" : "var(--c-muted)" }}
+                  >
                     {r.savesRatio.toFixed(2)}
                   </span>
                 ) : (

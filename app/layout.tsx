@@ -35,9 +35,11 @@ export const metadata: Metadata = {
 const THEME_SCRIPT = `
 (function(){
   try {
+    // Light is the brand's colourful default and must load first, so we do NOT
+    // follow the OS dark preference. Dark ships only when the user explicitly
+    // picks it via the toggle (stored in localStorage).
     var s = localStorage.getItem('cts-theme');
-    var m = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', s || (m ? 'dark' : 'light'));
+    document.documentElement.setAttribute('data-theme', s === 'dark' ? 'dark' : 'light');
   } catch (e) {
     document.documentElement.setAttribute('data-theme', 'light');
   }

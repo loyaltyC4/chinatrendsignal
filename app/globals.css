@@ -47,6 +47,16 @@
   --color-neg: var(--c-neg);
   --color-negweak: var(--c-neg-weak);
 
+  /* Platform-coded hues, exposed as utilities (text-douyin, bg-xhsweak, etc.). */
+  --color-douyin: var(--c-douyin);
+  --color-douyinweak: var(--c-douyin-weak);
+  --color-xhs: var(--c-xhs);
+  --color-xhsweak: var(--c-xhs-weak);
+  --color-p1688: var(--c-1688);
+  --color-p1688weak: var(--c-1688-weak);
+  --color-taobao: var(--c-taobao);
+  --color-taobaoweak: var(--c-taobao-weak);
+
   /* Legacy aliases. The old palette names are used across ~15 components; mapping
      them here makes every existing class theme-aware instead of requiring a
      simultaneous rewrite of every file. */
@@ -93,6 +103,15 @@
     --c-neg: #b91c1c;
     --c-neg-weak: #fef2f2;
 
+    /* PLATFORM CODING (namemarshal's move: colour carries information).
+       One saturated hue per Chinese source. These are used prominently across
+       the radar and hero, not as decoration, so the source is readable at a
+       glance. Each has a strong value (fg), a soft fill (weak), and a bar tint. */
+    --c-douyin: #12b886;        --c-douyin-weak: #e2f8f0;   /* jade */
+    --c-xhs: #f5325b;           --c-xhs-weak: #ffe8ed;      /* rose */
+    --c-1688: #f08c00;          --c-1688-weak: #fff2df;     /* amber */
+    --c-taobao: #ff6b35;        --c-taobao-weak: #ffe9e0;   /* coral */
+
     --shadow-card: 0 1px 2px rgb(20 22 26 / .04), 0 4px 16px rgb(20 22 26 / .04);
     --shadow-lift: 0 2px 4px rgb(20 22 26 / .05), 0 12px 32px rgb(20 22 26 / .07);
   }
@@ -125,6 +144,12 @@
     --c-warn-weak: #21190c;
     --c-neg: #f87171;
     --c-neg-weak: #241315;
+
+    /* Platform hues, brightened for the dark canvas. */
+    --c-douyin: #2dd4a7;        --c-douyin-weak: #0c2119;
+    --c-xhs: #ff5b7a;           --c-xhs-weak: #2a1119;
+    --c-1688: #ffab3d;          --c-1688-weak: #241a0a;
+    --c-taobao: #ff855c;        --c-taobao-weak: #26140d;
 
     /* Dark elevation is surface lightness, not shadow (Linear's model). */
     --shadow-card: none;
@@ -186,6 +211,25 @@
 
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-lift { box-shadow: var(--shadow-lift); }
+
+  /* A real spectrum wash built from the four platform hues, for the hero and
+     section accents. This is the page's colour, not an AI-gradient cliche: the
+     exact hues that code the data. */
+  .spectrum-text {
+    background: linear-gradient(100deg, var(--c-xhs), var(--c-taobao) 34%, var(--c-1688) 62%, var(--c-douyin));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .spectrum-rule {
+    height: 3px; border: 0;
+    background: linear-gradient(90deg, var(--c-xhs), var(--c-taobao) 34%, var(--c-1688) 62%, var(--c-douyin));
+  }
+  .spectrum-wash {
+    background:
+      radial-gradient(60% 80% at 88% 8%, color-mix(in oklab, var(--c-xhs) 12%, transparent), transparent 70%),
+      radial-gradient(50% 70% at 6% 92%, color-mix(in oklab, var(--c-douyin) 12%, transparent), transparent 70%);
+  }
 
   .skip-link { position: absolute; left: -9999px; top: 0; z-index: 100; }
   .skip-link:focus {
