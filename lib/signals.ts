@@ -232,8 +232,11 @@ export async function getWatchlistDetail(userId: string): Promise<WatchDetail[]>
       const points = history.get(s.signal_id) ?? [];
       const atSave = [...points].reverse().find((p) => new Date(p.at) <= new Date(s.created_at));
       const latest = points[points.length - 1];
+      // Requiring two DIFFERENT observations matters: a row saved this evening resolves
+      // its baseline to the same reading as the latest one, and reporting that as "0%"
+      // would present "we have not measured this yet" as "it has not moved".
       const movementPct =
-        atSave && latest && atSave.total > 0
+        atSave && latest && atSave.at !== latest.at && atSave.total > 0
           ? Math.round(((latest.total - atSave.total) / atSave.total) * 1000) / 10
           : null;
 

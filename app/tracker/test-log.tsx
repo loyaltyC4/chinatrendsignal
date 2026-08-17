@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Trash2 } from "lucide-react";
 
@@ -190,9 +190,30 @@ export default function TestLog({ rows, niches }: { rows: TestRow[]; niches: str
   );
 }
 
-/** Editable currency cell. Commits on blur or Enter, reverts on Escape. */
+/**
+ * Editable currency cell.
+ *
+ * Debounced rather than blur-only. The first version committed on blur, and a row
+ * where you typed a return figure and then changed the result dropdown lost the
+ * figure: the dropdown's save refreshed the server component before the blur
+ * committed. Saving shortly after typing stops, and re-syncing when the server value
+ * changes, means the cell can never disagree with the database.
+ */
 function Money({ value, onSave, label }: { value: number; onSave: (v: number) => void; label: string }) {
   const [draft, setDraft] = useState(String(value));
+  const dirty = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!dirty.current) setDraft(String(value));
+  }, [value]);
+
+  function commit(next: string) {
+    const n = Number(next);
+    if (!Number.isFinite(n) || n === value) return;
+    dirty.current = false;
+    onSave(n);
+  }
 
   return (
     <span className="flex items-center justify-end gap-0.5 font-mono text-[12.5px] text-body">
@@ -201,17 +222,25 @@ function Money({ value, onSave, label }: { value: number; onSave: (v: number) =>
         value={draft}
         aria-label={label}
         inputMode="decimal"
-        onChange={(e) => setDraft(e.target.value.replace(/[^\d.]/g, ""))}
+        onChange={(e) => {
+          const next = e.target.value.replace(/[^\d.]/g, "");
+          dirty.current = true;
+          setDraft(next);
+          if (timer.current) clearTimeout(timer.current);
+          timer.current = setTimeout(() => commit(next), 600);
+        }}
         onBlur={() => {
-          const n = Number(draft);
-          if (Number.isFinite(n) && n !== value) onSave(n);
-          else setDraft(String(value));
+          if (timer.current) clearTimeout(timer.current);
+          commit(draft);
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-          if (e.key === "Escape") setDraft(String(value));
+          if (e.key === "Escape") {
+            dirty.current = false;
+            setDraft(String(value));
+          }
         }}
-        className="w-[4.5rem] rounded-sm border border-transparent bg-transparent px-1 py-0.5 text-right tabular-nums text-body outline-none transition-colors hover:border-line focus:border-accent focus:bg-canvas"
+        className="w-[3.6rem] rounded-sm border border-transparent bg-transparent px-1 py-0.5 text-right tabular-nums text-body outline-none transition-colors hover:border-line focus:border-accent focus:bg-canvas"
       />
     </span>
   );
