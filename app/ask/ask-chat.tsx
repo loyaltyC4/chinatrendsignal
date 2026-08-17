@@ -86,6 +86,9 @@ export default function AskChat() {
           {status === "loading" && (
             <div className="flex justify-start" aria-live="polite">
               <div className="w-[70%] space-y-2 rounded-card border border-line bg-canvas px-3.5 py-3">
+                {/* Naming the wait matters: the answer takes 20-45s, and an unexplained
+                    skeleton that long reads as a hang. */}
+                <p className="pb-1 font-mono text-[11px] text-mut">Reading your index · usually 20-45 seconds</p>
                 <div className="h-3 w-full animate-pulse rounded bg-surface2" />
                 <div className="h-3 w-5/6 animate-pulse rounded bg-surface2" />
                 <div className="h-3 w-2/3 animate-pulse rounded bg-surface2" />

@@ -19,6 +19,7 @@ const TIERS = [
 
 const COSTS = [
   ["Signal analysis", "2"],
+  ["Ask a question", "2"],
   ["Opportunity score", "3"],
   ["Supplier match", "3"],
   ["Weekly report", "10"],

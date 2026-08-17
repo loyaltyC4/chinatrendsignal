@@ -5,7 +5,7 @@ import { isServiceRoleConfigured, supabaseAdmin } from "@/lib/supabase/admin";
 // the configured variable is NEXT_PUBLIC_SUPABASE_URL. It therefore always took the
 // no-op branch and every paid action ran free. Both clients now come from one place.
 
-export type CreditAction = AnalysisKind | "supplier_match";
+export type CreditAction = AnalysisKind | "supplier_match" | "ask";
 
 export const creditCost = (action: CreditAction) => CREDIT_COSTS[action];
 

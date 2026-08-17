@@ -322,6 +322,11 @@ export function OmniCommandPalette({
         arr = arr.filter(i => !i.pinned);
       }
 
+      // Drop non-matches once there is a query. The component shipped sorting by score
+      // but never filtering, so typing "lipstick" still listed every navigation item
+      // above the actual product match — the palette looked broken.
+      if (q) arr = arr.filter((i) => i._score > 0);
+
       // sort by score, then label
       if (q) arr.sort((a, b) => b._score - a._score || a.label.localeCompare(b.label));
       else arr.sort((a, b) => a.label.localeCompare(b.label));

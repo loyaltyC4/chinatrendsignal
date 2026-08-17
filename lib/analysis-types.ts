@@ -51,7 +51,11 @@ export type EnrichmentResult = {
   generatedAt: string;
 };
 
-export const CREDIT_COSTS: Record<AnalysisKind | "supplier_match", number> = {
+export const CREDIT_COSTS: Record<AnalysisKind | "supplier_match" | "ask", number> = {
+  // "ask" is priced the same as a signal explanation but billed under its own name.
+  // It previously charged as signal_explanation, so the credit history told the user
+  // they had bought something they had not.
+  ask: 2,
   signal_explanation: 2,
   niche_scorecard: 3,
   complaint_miner: 5,

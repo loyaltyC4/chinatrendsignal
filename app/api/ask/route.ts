@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   const reference = crypto.randomUUID();
   let debit;
   try {
-    debit = await debitCredits({ userId: user.id, action: "signal_explanation", reference });
+    debit = await debitCredits({ userId: user.id, action: "ask", reference });
   } catch (error) {
     if (error instanceof InsufficientCredits) {
       return NextResponse.json({ error: "Not enough credits to ask.", required: error.required, balance: error.balance }, { status: 402 });
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     // Tell the caller which dataset the answer came from, so the UI can say so.
     return NextResponse.json({ ok: true, answer, dataSource: source, credit: debit });
   } catch (error) {
-    await refundCredits({ userId: user.id, action: "signal_explanation", reference });
+    await refundCredits({ userId: user.id, action: "ask", reference });
     return NextResponse.json({ error: error instanceof Error ? error.message : "Analyst failed" }, { status: 500 });
   }
 }

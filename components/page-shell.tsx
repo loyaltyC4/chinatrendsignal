@@ -24,7 +24,18 @@ export async function Shell({ active, children }: { active?: string; children: R
   }
 
   const { rows } = await getRadar(120);
-  const paletteIndex = rows.map((r) => ({ id: r.id, product: r.product, zh: r.zh, niche: r.niche }));
+  // Deduplicated by product and niche: the same product is often captured from several
+  // posts, and a palette listing "lipstick" three identical times looks like a bug even
+  // though the rows are genuinely distinct.
+  const seen = new Set<string>();
+  const paletteIndex = rows
+    .filter((r) => {
+      const key = `${r.product}|${r.niche}`.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map((r) => ({ id: r.id, product: r.product, zh: r.zh, niche: r.niche }));
 
   return (
     <AppFrame credits={credits} plan={plan} email={user?.email ?? null} signals={paletteIndex}>
