@@ -193,12 +193,18 @@ function buildActions(ctx: {
 
   // Opportunity: strong intent rows the user has not saved yet.
   const saved = new Set(watchlist.map((w) => w.signalId));
-  const hot = rows.filter((r) => (r.savesRatio ?? 0) >= 0.7 && !saved.has(r.id));
+  // Sorted, because the card claims "highest" — it previously showed whichever row came
+  // first in velocity order, so the figure quoted was often not the highest at all.
+  // The label says "unusually high" rather than "beating likes": the threshold is 0.70,
+  // and a 0.85 ratio is not a ratio above 1.
+  const hot = rows
+    .filter((r) => (r.savesRatio ?? 0) >= 0.7 && !saved.has(r.id))
+    .sort((a, b) => (b.savesRatio ?? 0) - (a.savesRatio ?? 0));
   if (hot.length > 0) {
     out.push({
       id: "hot",
-      title: `${hot.length} product${hot.length === 1 ? "" : "s"} with saves beating likes`,
-      detail: `Highest is ${hot[0]!.product} at ${hot[0]!.savesRatio?.toFixed(2)} saves per like.`,
+      title: `${hot.length} product${hot.length === 1 ? "" : "s"} with unusually high save intent`,
+      detail: `Highest is ${hot[0]!.product} at ${hot[0]!.savesRatio?.toFixed(2)} saves per like. Above 0.70 is rare.`,
       href: "/radar",
       cta: "Open the radar",
       tone: "opportunity",
