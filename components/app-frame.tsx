@@ -77,7 +77,7 @@ export default function AppFrame({
               keywords: [s.zh, s.niche],
               onAction: () =>
                 go(
-                  `/analysis?product=${encodeURIComponent(s.product)}&zh=${encodeURIComponent(s.zh)}&niche=${encodeURIComponent(s.niche)}`,
+                  `/analysis?id=${encodeURIComponent(s.id)}`,
                 ),
             }));
         },

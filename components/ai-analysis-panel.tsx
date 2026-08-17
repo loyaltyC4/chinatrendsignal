@@ -78,6 +78,9 @@ export default function AiAnalysisPanel({ context }: { context: ProductContext }
 
       {status === "loading" && (
         <div className="mt-5 space-y-2" aria-live="polite">
+          {/* A real analysis takes 20-45 seconds. Without saying so, a skeleton that
+              long reads as a hang and people navigate away mid-charge. */}
+          <p className="pb-1 font-mono text-[11px] text-mut">Reading the recorded data · usually 20-45 seconds</p>
           <div className="h-3.5 w-1/3 animate-pulse rounded bg-surface2" />
           <div className="h-3 w-full animate-pulse rounded bg-surface2" />
           <div className="h-3 w-11/12 animate-pulse rounded bg-surface2" />

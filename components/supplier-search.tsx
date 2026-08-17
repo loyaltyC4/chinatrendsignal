@@ -15,6 +15,9 @@ export default function SupplierSearch({ initialKeyword }: { initialKeyword: str
   const [keyword, setKeyword] = useState(initialKeyword);
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [note, setNote] = useState("");
+  /** True when the failure is ours (provider down, quota, timeout) rather than the
+   *  user's. It changes the tone of the message: our fault is not an alarm. */
+  const [ours, setOurs] = useState(false);
   const [offers, setOffers] = useState<Offer[]>([]);
 
   async function search(e: React.FormEvent) {
@@ -22,6 +25,7 @@ export default function SupplierSearch({ initialKeyword }: { initialKeyword: str
     if (!keyword.trim()) return;
     setState("loading");
     setNote("");
+    setOurs(false);
     setOffers([]);
     try {
       const r = await fetch("/api/supplier-match", {
@@ -35,7 +39,13 @@ export default function SupplierSearch({ initialKeyword }: { initialKeyword: str
       if (r.status === 402) { setState("error"); setNote(`Not enough credits. This costs ${d.required} and you have ${d.balance}.`); return; }
       if (r.status === 429) { setState("error"); setNote("You've hit the limit for supplier matches. It resets shortly."); return; }
       if (d.setupRequired) { setState("error"); setNote(d.instructions || "Supplier matching is not connected yet."); return; }
-      if (!r.ok) { setState("error"); setNote(d.error || "Supplier match failed."); return; }
+      if (!r.ok) {
+        setState("error");
+        setOurs(Boolean(d.ours));
+        setNote(d.error || "Supplier match failed.");
+        return;
+      }
+      if (d.note) setNote(d.note);
 
       // Verified shape: data.data.OFFER.items[].data
       const raw = d.data?.wholesale1688?.data?.OFFER?.items ?? [];
@@ -90,7 +100,19 @@ export default function SupplierSearch({ initialKeyword }: { initialKeyword: str
       )}
 
       {state === "error" && (
-        <p className="mt-4 rounded-ctl border border-line bg-negweak px-3 py-2.5 text-[13px] text-neg">{note}</p>
+        <p
+          className={`mt-4 rounded-ctl border border-line px-3 py-2.5 text-[13px] leading-relaxed ${
+            ours ? "bg-warnweak text-warn" : "bg-negweak text-neg"
+          }`}
+        >
+          {note}
+        </p>
+      )}
+
+      {state === "done" && note && (
+        <p className="mt-4 rounded-ctl border border-line bg-warnweak px-3 py-2.5 text-[12.5px] leading-relaxed text-warn">
+          {note}
+        </p>
       )}
 
       {state === "done" && offers.length === 0 && (

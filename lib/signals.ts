@@ -269,3 +269,65 @@ export async function getWatchlistDetail(userId: string): Promise<WatchDetail[]>
     })
     .filter((r): r is WatchDetail => r !== null);
 }
+
+/**
+ * One signal, by id, for the analysis page.
+ *
+ * The analysis page used to build its context from query-string numbers merged over a
+ * hardcoded sample. That is how a real product ended up being analysed with a sample
+ * product's Amazon figures. Reading the row from the database is the only way the page
+ * can be sure every number it shows, and every number it sends to the model, came from
+ * the row itself.
+ */
+export async function getSignal(id: string): Promise<WatchDetail | null> {
+  if (!isServiceRoleConfigured()) return null;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+
+  const db = supabaseAdmin();
+  const [{ data: r }, { data: obs }] = await Promise.all([
+    db
+      .from("signals")
+      .select("id, title, title_en, product_term, product_en, is_product, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, comments, shares, velocity_pct, intent_score, wholesale_cny, supplier_url, stage")
+      .eq("id", id)
+      .maybeSingle(),
+    db
+      .from("signal_observations")
+      .select("engagement_total, observed_at")
+      .eq("signal_id", id)
+      .order("observed_at", { ascending: true }),
+  ]);
+
+  if (!r) return null;
+
+  const likes = Number(r.likes ?? 0);
+  const saves = Number(r.saves ?? 0);
+  const points = (obs ?? []).map((o: any) => Number(o.engagement_total ?? 0));
+
+  return {
+    id: r.id,
+    product: r.product_en || r.title_en || r.title,
+    zh: r.product_term || (r.title_en ? r.title : ""),
+    niche: r.niche || "Unclassified",
+    stage: (r.stage as Signal["stage"]) || "Rising",
+    velocityPct: r.velocity_pct != null ? Number(r.velocity_pct) : 0,
+    intent: r.intent_score ?? (likes > 0 ? Math.min(100, Math.round((saves / likes) * 100)) : 0),
+    wholesaleCny: r.wholesale_cny != null ? Number(r.wholesale_cny) : 0,
+    retailAud: impliedRetailAud(r.wholesale_cny) ?? 0,
+    sources: [platformLabel(r.platform)],
+    refreshed: relativeTime(r.last_seen_at),
+    firstDetectedAt: r.first_detected_at,
+    daysTracked: daysBetween(r.first_detected_at),
+    lastSeenAt: r.last_seen_at,
+    sourceUrl: r.source_url,
+    savesRatio: likes > 0 ? Math.round((saves / likes) * 100) / 100 : null,
+    isProduct: r.is_product ?? null,
+    spark: points.slice(-14),
+    savedAt: "",
+    note: null,
+    movementPct: null,
+    likes,
+    saves,
+    comments: Number(r.comments ?? 0),
+    shares: Number(r.shares ?? 0),
+  } as WatchDetail & { likes: number; saves: number; comments: number; shares: number };
+}

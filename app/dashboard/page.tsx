@@ -142,7 +142,7 @@ export default async function DashboardPage() {
               return (
                 <li key={r.id} className="border-b border-line last:border-b-0">
                   <Link
-                    href={`/analysis?product=${encodeURIComponent(r.product)}&zh=${encodeURIComponent(r.zh)}&niche=${encodeURIComponent(r.niche)}&intent=${r.intent}&wholesale=${r.wholesaleCny}&retail=${r.retailAud}`}
+                    href={`/analysis?id=${r.id}`}
                     className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5"
                   >
                     <span
@@ -245,7 +245,7 @@ export default async function DashboardPage() {
                     <li key={w.id} className="flex items-center gap-2.5 py-2.5">
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: p.fg }} />
                       <Link
-                        href={`/analysis?product=${encodeURIComponent(w.product)}&zh=${encodeURIComponent(w.zh)}&niche=${encodeURIComponent(w.niche)}`}
+                        href={`/analysis?id=${w.signalId}`}
                         className="min-w-0 flex-1 truncate text-[13px] text-ink transition-opacity hover:opacity-70"
                       >
                         {w.product}

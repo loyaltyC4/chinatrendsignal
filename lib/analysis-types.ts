@@ -19,6 +19,13 @@ export type ProductContext = {
   name: string;
   chineseName?: string;
   category: string;
+  /** True only for the worked example. The prompt makes the model disclose it. */
+  sample?: boolean;
+  /** Platform labels we actually observed this on. */
+  sources?: string[];
+  firstDetectedAt?: string | null;
+  daysTracked?: number | null;
+  engagement?: { likes?: number; saves?: number; comments?: number; savesPerLike?: number | null };
   supplier?: { url?: string; wholesaleCny?: number; seller?: string; shippingDays?: number };
   market?: { retailAud?: number; tiktokShopListings?: number; amazonListings?: number; amazonRankGain?: number };
   signals?: { velocityPct?: number; intentScore?: number; stage?: "Rising" | "Peaking" | "Fading" };

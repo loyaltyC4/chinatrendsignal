@@ -136,7 +136,9 @@ function SignalRow({ s, watching }: { s: Signal; watching: boolean }) {
   const hasPrice = s.wholesaleCny > 0 && s.retailAud > 0;
   const spread = hasPrice ? s.retailAud / (s.wholesaleCny * 0.213) : null;
   const stageColor = STAGE[s.stage] ?? STAGE.Rising;
-  const href = `/analysis?product=${encodeURIComponent(s.product)}&zh=${encodeURIComponent(s.zh)}&niche=${encodeURIComponent(s.niche)}&stage=${s.stage}&velocity=${s.velocityPct}&intent=${s.intent}&wholesale=${s.wholesaleCny}&retail=${s.retailAud}`;
+  // Linked by id so the analysis page reads the row from the database rather than
+  // trusting (or padding out) numbers passed through the query string.
+  const href = `/analysis?id=${encodeURIComponent(s.id)}`;
 
   return (
     <li className="border-b border-line last:border-b-0">

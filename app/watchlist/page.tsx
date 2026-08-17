@@ -111,7 +111,7 @@ export default async function WatchlistPage() {
                       {p.label}
                     </span>
                     <Link
-                      href={`/analysis?product=${encodeURIComponent(r.product)}&zh=${encodeURIComponent(r.zh)}&niche=${encodeURIComponent(r.niche)}&intent=${r.intent}&wholesale=${r.wholesaleCny}&retail=${r.retailAud}`}
+                      href={`/analysis?id=${r.id}`}
                       className="min-w-0 flex-1 truncate text-[14px] font-medium text-ink transition-opacity hover:opacity-70"
                     >
                       {r.product}

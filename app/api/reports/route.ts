@@ -45,7 +45,19 @@ export async function POST(req: NextRequest) {
       category: body.niche,
       signals: { stage: "Rising" },
       market: {},
-      reviews: rows.map((s) => ({ platform: "Radar", text: `${s.product}: velocity +${s.velocityPct}%, intent ${s.intent}/100, wholesale ¥${s.wholesaleCny}, retail A$${s.retailAud}` })),
+      // Each row is described with its KNOWN figures only. The previous version wrote
+      // "wholesale ¥0" and "velocity +0%" for rows we had not measured, so the report
+      // read those absences back as findings ("zero momentum, ¥0 pricing").
+      reviews: rows.map((s) => {
+        const parts = [
+          s.velocityPct ? `velocity +${s.velocityPct}%` : null,
+          s.intent ? `intent ${s.intent}/100` : null,
+          s.savesRatio != null ? `${s.savesRatio.toFixed(2)} saves per like` : null,
+          s.wholesaleCny ? `wholesale ¥${s.wholesaleCny}` : "no factory price measured",
+          s.daysTracked != null ? `tracked ${s.daysTracked}d` : null,
+        ].filter(Boolean);
+        return { platform: s.sources[0] ?? "Radar", text: `${s.product}${s.zh ? ` (${s.zh})` : ""}: ${parts.join(", ")}` };
+      }),
     });
     const report = [result.title, "", result.executiveSummary, result.actions.length ? `\nWhat to do next:\n${result.actions.map((a) => `• ${a}`).join("\n")}` : ""].filter(Boolean).join("\n");
     return NextResponse.json({ ok: true, report, credit: debit });
