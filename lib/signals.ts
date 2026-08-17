@@ -1,4 +1,4 @@
-import { supabaseAdmin, isServiceRoleConfigured } from "@/lib/supabase/server";
+import { supabaseAdmin, isServiceRoleConfigured } from "@/lib/supabase/admin";
 import { SIGNALS as SEED } from "@/lib/radar-data";
 import type { Signal } from "@/components/signal-feed";
 

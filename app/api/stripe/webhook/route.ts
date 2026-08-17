@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { isServiceRoleConfigured, supabaseAdmin } from "@/lib/supabase/server";
+import { isServiceRoleConfigured, supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * POST /api/stripe/webhook — grant credits and set the plan when a customer pays.

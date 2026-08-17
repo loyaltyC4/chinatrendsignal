@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 const ERRORS: Record<string, string> = {
@@ -11,19 +11,51 @@ const ERRORS: Record<string, string> = {
   exchange_failed: "That link has expired or was already used. Request a new one below.",
 };
 
+type Mode = "password" | "link";
+
 function LoginForm() {
   const params = useSearchParams();
+  const router = useRouter();
   const next = params.get("next") || "/dashboard";
   const urlError = params.get("error");
 
+  const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState<"idle" | "busy" | "sent" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  async function signInWithPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || !password) return;
+    setStatus("busy");
+    setMessage("");
+    try {
+      const supabase = supabaseBrowser();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error) throw error;
+      // Full reload so the server components pick up the fresh session cookie.
+      router.push(next);
+      router.refresh();
+    } catch (err) {
+      setStatus("error");
+      setMessage(
+        err instanceof Error && /invalid login/i.test(err.message)
+          ? "That email and password combination isn't right."
+          : err instanceof Error
+            ? err.message
+            : "Could not sign in. Try again.",
+      );
+    }
+  }
 
   async function sendLink(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
-    setStatus("sending");
+    setStatus("busy");
     setMessage("");
     try {
       const supabase = supabaseBrowser();
@@ -63,12 +95,31 @@ function LoginForm() {
     );
   }
 
+  const busy = status === "busy";
+
   return (
     <div className="rounded-card border border-line bg-surface p-8">
       <h1 className="display-md text-ink">Sign in</h1>
       <p className="mt-2 text-sm text-mut">
-        No password. We email you a link that signs you straight in.
+        Use a password, or have a one-time link emailed to you.
       </p>
+
+      {/* mode switch */}
+      <div className="mt-6 flex gap-1 rounded-ctl border border-line bg-canvas p-1" role="tablist">
+        {(["password", "link"] as Mode[]).map((m) => (
+          <button
+            key={m}
+            role="tab"
+            aria-selected={mode === m}
+            onClick={() => { setMode(m); setStatus("idle"); setMessage(""); }}
+            className={`flex-1 rounded-[4px] py-1.5 text-[12.5px] font-medium transition-colors ${
+              mode === m ? "bg-surface text-ink shadow-card" : "text-mut hover:text-ink"
+            }`}
+          >
+            {m === "password" ? "Password" : "Email link"}
+          </button>
+        ))}
+      </div>
 
       {(urlError || status === "error") && (
         <p className="mt-5 rounded-ctl border border-line bg-negweak px-4 py-3 text-sm text-neg">
@@ -76,31 +127,54 @@ function LoginForm() {
         </p>
       )}
 
-      <form onSubmit={sendLink} className="mt-6 space-y-3">
-        <label htmlFor="email" className="block font-mono text-[11px] uppercase tracking-[.12em] text-mut">
-          Email address
-        </label>
-        <input
-          id="email"
-          type="email"
-          required
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          className="w-full rounded-ctl border border-line bg-canvas px-4 py-3.5 text-[15px] text-ink outline-none transition-colors placeholder:text-faint focus:border-accent"
-        />
+      <form onSubmit={mode === "password" ? signInWithPassword : sendLink} className="mt-5 space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="email" className="block font-mono text-[11px] uppercase tracking-[.12em] text-mut">
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="w-full rounded-ctl border border-line bg-canvas px-4 py-3 text-[15px] text-ink outline-none transition-colors placeholder:text-faint focus:border-accent"
+          />
+        </div>
+
+        {mode === "password" && (
+          <div className="space-y-2">
+            <label htmlFor="password" className="block font-mono text-[11px] uppercase tracking-[.12em] text-mut">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-ctl border border-line bg-canvas px-4 py-3 text-[15px] text-ink outline-none transition-colors placeholder:text-faint focus:border-accent"
+            />
+            <p className="text-[12px] text-mut">
+              Change it any time from Settings once you are in.
+            </p>
+          </div>
+        )}
+
         <button
           type="submit"
-          disabled={status === "sending"}
-          className="w-full rounded-ctl bg-accentstrong py-3.5 text-[15px] font-medium text-onaccent transition-colors hover:opacity-90 disabled:opacity-60"
+          disabled={busy}
+          className="w-full rounded-ctl bg-accentstrong py-3 text-[15px] font-medium text-onaccent transition-opacity hover:opacity-90 active:translate-y-px disabled:opacity-60"
         >
-          {status === "sending" ? "Sending…" : "Email me a sign-in link"}
+          {busy ? "Working…" : mode === "password" ? "Sign in" : "Email me a sign-in link"}
         </button>
       </form>
 
       <p className="mt-6 text-xs leading-relaxed text-faint">
-        New here? The same link creates your account. The free tier never expires and we
+        New here? The email link creates your account. The free tier never expires and we
         don&apos;t ask for a card.
       </p>
     </div>
@@ -114,7 +188,7 @@ export default function LoginPage() {
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5 font-semibold tracking-tight text-ink">
           <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
             <circle cx="13" cy="13" r="11" stroke="var(--c-accent)" strokeWidth="2.2" />
-            <circle cx="13" cy="13" r="5.5" stroke="var(--c-accent)" strokeWidth="2.5" />
+            <circle cx="13" cy="13" r="5.5" stroke="var(--c-accent)" strokeWidth="2.2" />
             <circle cx="13" cy="13" r="1.8" fill="var(--c-accent)" />
           </svg>
           chinatrendsignal

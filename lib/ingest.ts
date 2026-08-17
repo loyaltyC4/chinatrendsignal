@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { extractProducts, isExtractionConfigured } from "@/lib/extract";
 import {
   callJustOne,

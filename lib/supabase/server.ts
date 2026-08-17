@@ -1,19 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
-import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 /** True when auth is wired up. Routes degrade to a clear 503 rather than crashing. */
 export function isSupabaseConfigured() {
   return Boolean(URL && ANON);
 }
 
-export function isServiceRoleConfigured() {
-  return Boolean(URL && SERVICE);
-}
 
 /**
  * Request-scoped client that reads the user's session from cookies and respects RLS.
@@ -21,6 +16,10 @@ export function isServiceRoleConfigured() {
  */
 export async function supabaseServer() {
   if (!URL || !ANON) throw new Error("Supabase is not configured");
+  // Imported lazily rather than at module scope. A static next/headers edge in the
+  // module graph made Turbopack reject any route that transitively imported this
+  // file, even legitimate App Router route handlers.
+  const { cookies } = await import("next/headers");
   const store = await cookies();
   return createServerClient(URL, ANON, {
     cookies: {
@@ -39,13 +38,6 @@ export async function supabaseServer() {
   });
 }
 
-/**
- * Service-role client. Bypasses RLS — never expose to the browser and never
- * accept a user-supplied id without checking the session first.
- */
-export function supabaseAdmin() {
-  if (!URL || !SERVICE) throw new Error("Supabase service role is not configured");
-  return createClient(URL, SERVICE, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
+// Re-exported so existing imports keep working. The implementation lives in
+// ./admin, which must stay free of next/headers.
+export { supabaseAdmin, isServiceRoleConfigured } from "./admin";

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isServiceRoleConfigured, supabaseAdmin } from "@/lib/supabase/server";
+import { isServiceRoleConfigured, supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * Abuse guard for the paid-upstream routes (Claude + JustOne).

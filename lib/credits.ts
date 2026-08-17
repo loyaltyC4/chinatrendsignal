@@ -1,5 +1,5 @@
 import { CREDIT_COSTS, type AnalysisKind } from "./analysis-types";
-import { isServiceRoleConfigured, supabaseAdmin } from "@/lib/supabase/server";
+import { isServiceRoleConfigured, supabaseAdmin } from "@/lib/supabase/admin";
 
 // NOTE: the previous version read process.env.SUPABASE_URL, which is never set —
 // the configured variable is NEXT_PUBLIC_SUPABASE_URL. It therefore always took the

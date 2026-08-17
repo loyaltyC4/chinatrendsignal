@@ -1,14 +1,37 @@
-import AppNav from "@/components/app-nav";
+import AppFrame from "@/components/app-frame";
+import { requireUser } from "@/lib/auth";
+import { supabaseAdmin, isServiceRoleConfigured } from "@/lib/supabase/admin";
+import { getRadar } from "@/lib/signals";
 
-/** Shared product-page frame so every surface has identical rhythm and width. */
-export function Shell({ active, children }: { active: string; children: React.ReactNode }) {
+/**
+ * Shared frame for every signed-in page. Fetches only what the chrome needs
+ * (plan, credits, and a lightweight index for the command palette) so individual
+ * pages stay responsible for their own content.
+ */
+export async function Shell({ active, children }: { active?: string; children: React.ReactNode }) {
+  const { user } = await requireUser();
+
+  let credits = 0;
+  let plan = "scout";
+  if (user && isServiceRoleConfigured()) {
+    const db = supabaseAdmin();
+    const [{ data: p }, { data: bal }] = await Promise.all([
+      db.from("profiles").select("plan").eq("id", user.id).maybeSingle(),
+      db.rpc("credit_balance", { p_user_id: user.id }),
+    ]);
+    plan = p?.plan ?? "scout";
+    credits = typeof bal === "number" ? bal : 0;
+  }
+
+  const { rows } = await getRadar(120);
+  const paletteIndex = rows.map((r) => ({ id: r.id, product: r.product, zh: r.zh, niche: r.niche }));
+
   return (
-    <div className="min-h-[100dvh] bg-canvas">
-      <AppNav active={active} />
-      <main id="main" className="mx-auto max-w-[1240px] px-4 py-7 sm:px-6 sm:py-9">
+    <AppFrame credits={credits} plan={plan} email={user?.email ?? null} signals={paletteIndex}>
+      <main id="main" className="mx-auto max-w-[1180px] px-4 py-7 sm:px-7 sm:py-9">
         {children}
       </main>
-    </div>
+    </AppFrame>
   );
 }
 
@@ -32,7 +55,7 @@ export function PageHead({
   );
 }
 
-/** Freshness / provenance pill. The product's whole pitch is data honesty, so the
+/** Freshness / provenance pill. The product's pitch is data honesty, so the
  *  interface states plainly which dataset you are looking at. */
 export function SourceBadge({ live, when }: { live: boolean; when: string }) {
   if (live) {
@@ -52,9 +75,19 @@ export function SourceBadge({ live, when }: { live: boolean; when: string }) {
 }
 
 /** Metric tile. No card chrome; hairline and spacing carry the structure. */
-export function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
+export function Stat({
+  label,
+  value,
+  note,
+  hue,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+  hue?: string;
+}) {
   return (
-    <div className="border-l border-line pl-3.5 first:border-l-0 first:pl-0">
+    <div className="border-l-2 pl-3.5" style={{ borderColor: hue ?? "var(--c-line)" }}>
       <p className="label text-mut">{label}</p>
       <p data-numeric className="mt-1.5 font-mono text-[26px] font-medium leading-none tracking-[-.02em] text-ink">
         {value}
