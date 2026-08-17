@@ -31,7 +31,10 @@ const RESULT_STYLE: Record<TestRow["result"], { bg: string; fg: string }> = {
   pending: { bg: "var(--c-surface-2)", fg: "var(--c-muted)" },
 };
 
-const GRID = "grid grid-cols-[minmax(0,1.7fr)_.75fr_.6fr_.6fr_.5fr_auto] items-center gap-3";
+// Editable cells cannot be hidden on small screens without hiding the ability to
+// enter the number, so the table scrolls sideways on a phone instead.
+const GRID =
+  "grid min-w-[34rem] grid-cols-[minmax(0,1.7fr)_.75fr_.6fr_.6fr_.5fr_auto] items-center gap-3";
 
 export default function TestLog({ rows, niches }: { rows: TestRow[]; niches: string[] }) {
   const router = useRouter();
@@ -120,7 +123,7 @@ export default function TestLog({ rows, niches }: { rows: TestRow[]; niches: str
         {problem && <p className="mt-2.5 text-[12px] text-neg">{problem}</p>}
       </div>
 
-      <div className="mt-6 max-w-[54rem] overflow-hidden rounded-card border border-line bg-surface">
+      <div className="mt-6 max-w-[54rem] overflow-x-auto rounded-card border border-line bg-surface">
         <div className={`${GRID} border-b border-line bg-surface2 px-4 py-2.5 sm:px-5`}>
           <span className="label text-mut">Product</span>
           <span className="label text-mut">Result</span>

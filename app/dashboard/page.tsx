@@ -53,6 +53,11 @@ export default async function DashboardPage() {
     .sort((a, b) => (b.savesRatio ?? 0) - (a.savesRatio ?? 0))
     .slice(0, 6);
 
+  // Bars are scaled against the strongest row in view, not against a fixed 1.0 ceiling.
+  // With a fixed ceiling every ratio above ~0.95 rendered full-width, so the six bars
+  // were visually identical and the comparison they exist to make was impossible.
+  const topRatio = Math.max(0.01, ...movers.map((r) => r.savesRatio ?? 0));
+
   return (
     <Shell active="Today">
       {/* WHILE YOU WERE AWAY: the retention surface, first thing on the page */}
@@ -160,7 +165,10 @@ export default async function DashboardPage() {
                     </span>
                     {/* intent bar: no background track, per the anti-dashboard-clutter rule */}
                     <span className="hidden w-[70px] shrink-0 sm:block" aria-hidden>
-                      <span className="block h-[3px] rounded-full" style={{ width: `${Math.min(100, ratio * 100)}%`, background: p.fg }} />
+                      <span
+                        className="block h-[3px] rounded-full"
+                        style={{ width: `${Math.max(4, (ratio / topRatio) * 100)}%`, background: p.fg }}
+                      />
                     </span>
                     <span
                       data-numeric

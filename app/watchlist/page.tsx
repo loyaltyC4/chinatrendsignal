@@ -87,11 +87,11 @@ export default async function WatchlistPage() {
           </div>
 
           <ul className="mt-8 overflow-hidden rounded-card border border-line bg-surface">
-            <li className="grid grid-cols-[minmax(0,2fr)_.8fr_.7fr_.7fr_auto] items-center gap-3 border-b border-line bg-surface2 px-4 py-2.5 sm:px-5">
+            <li className="grid grid-cols-[minmax(0,2fr)_.8fr_.7fr_.7fr_auto] items-center gap-3 max-sm:grid-cols-[minmax(0,1.6fr)_.9fr_auto] border-b border-line bg-surface2 px-4 py-2.5 sm:px-5">
               <span className="label text-mut">Product</span>
               <span className="label text-right text-mut">Since you saved</span>
-              <span className="label text-right text-mut">Intent</span>
-              <span className="label text-right text-mut">Saved</span>
+              <span className="label text-right text-mut max-sm:hidden">Intent</span>
+              <span className="label text-right text-mut max-sm:hidden">Saved</span>
               <span className="sr-only">Remove</span>
             </li>
 
@@ -101,7 +101,7 @@ export default async function WatchlistPage() {
               return (
                 <li
                   key={r.id}
-                  className="grid grid-cols-[minmax(0,2fr)_.8fr_.7fr_.7fr_auto] items-center gap-3 border-b border-line px-4 py-3 last:border-b-0 sm:px-5"
+                  className="grid grid-cols-[minmax(0,2fr)_.8fr_.7fr_.7fr_auto] items-center gap-3 max-sm:grid-cols-[minmax(0,1.6fr)_.9fr_auto] border-b border-line px-4 py-3 last:border-b-0 sm:px-5"
                 >
                   <div className="flex min-w-0 items-center gap-2.5">
                     <span
@@ -129,11 +129,11 @@ export default async function WatchlistPage() {
                     {move == null ? "-" : `${move > 0 ? "+" : ""}${move}%`}
                   </span>
 
-                  <span data-numeric className="text-right font-mono text-[12.5px] text-body">
+                  <span data-numeric className="text-right font-mono text-[12.5px] text-body max-sm:hidden">
                     {r.savesRatio != null ? `${r.savesRatio.toFixed(2)}×` : "-"}
                   </span>
 
-                  <span data-numeric className="text-right font-mono text-[11.5px] text-faint">
+                  <span data-numeric className="text-right font-mono text-[11.5px] text-faint max-sm:hidden">
                     {new Date(r.savedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
                   </span>
 
