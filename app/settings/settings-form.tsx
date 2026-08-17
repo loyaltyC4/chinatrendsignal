@@ -13,12 +13,16 @@ export default function SettingsForm({
   displayName,
   niches,
   weeklyEmail,
+  mailerReady,
   allNiches,
 }: {
   email: string;
   displayName: string;
   niches: string[];
   weeklyEmail: boolean;
+  /** False when no email provider is configured, so the copy can say so plainly
+   *  instead of promising a Monday email nothing will send. */
+  mailerReady: boolean;
   allNiches: string[];
 }) {
   const [name, setName] = useState(displayName);
@@ -151,7 +155,11 @@ export default function SettingsForm({
           />
           <span>
             <span className="block text-[13.5px] text-ink">Send me the weekly brief</span>
-            <span className="block text-[12.5px] text-mut">One email, Monday, covering your niches only.</span>
+            <span className="block text-[12.5px] text-mut">
+              {mailerReady
+                ? "One email, Monday evening, covering your niches only."
+                : "Saved as a preference. Sending is not switched on yet, so no email will arrive until it is."}
+            </span>
           </span>
         </label>
 

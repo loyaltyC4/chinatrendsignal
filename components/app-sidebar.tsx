@@ -22,6 +22,7 @@ const GROUPS: Array<{ label: string; items: Array<{ href: string; name: string; 
     items: [
       { href: "/dashboard", name: "Today", hue: "var(--c-accent)" },
       { href: "/radar", name: "Radar", hue: "var(--c-xhs)" },
+      { href: "/watchlist", name: "Watchlist", hue: "var(--c-douyin)" },
     ],
   },
   {
@@ -35,7 +36,7 @@ const GROUPS: Array<{ label: string; items: Array<{ href: string; name: string; 
     label: "Compound",
     items: [
       { href: "/reports", name: "Reports", hue: "var(--c-douyin)" },
-      { href: "/tracker", name: "Tracker", hue: "var(--c-douyin)" },
+      { href: "/tracker", name: "Tracker", hue: "var(--c-taobao)" },
     ],
   },
   {

@@ -55,6 +55,20 @@ export type DashboardData = {
 const PLAN_CREDITS: Record<Profile["plan"], number> = { scout: 10, hunter: 100, operator: 300 };
 export const planAllowance = (plan: Profile["plan"]) => PLAN_CREDITS[plan] ?? 10;
 
+/** Watchlist ceilings. Scout gets a genuine taste of the habit rather than zero,
+ *  because a feature nobody has felt is not a feature they will pay to unlock.
+ *  Operator reads as "unlimited" in copy but is capped in code: every saved row is
+ *  re-checked nightly, so an unbounded list is an unbounded bill. */
+const PLAN_WATCH: Record<Profile["plan"], number> = { scout: 3, hunter: 10, operator: 250 };
+export const watchlistCap = (plan: Profile["plan"]) => PLAN_WATCH[plan] ?? 3;
+
+/** Signal ids this user already tracks, for rendering save state on the radar. */
+export async function getWatchedIds(userId: string): Promise<string[]> {
+  if (!isServiceRoleConfigured()) return [];
+  const { data } = await supabaseAdmin().from("watchlist").select("signal_id").eq("user_id", userId);
+  return (data ?? []).map((r: { signal_id: string }) => r.signal_id);
+}
+
 export async function getDashboard(userId: string): Promise<DashboardData> {
   const { rows, source } = await getRadar(200);
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Shell, Stat } from "@/components/page-shell";
 import { platformStyle } from "@/lib/platform-style";
+import WatchButton from "@/components/watch-button";
 import { requireUser } from "@/lib/auth";
 import { getDashboard, planAllowance } from "@/lib/dashboard";
 
@@ -44,6 +45,8 @@ export default async function DashboardPage() {
   const first = (d.profile?.displayName || d.profile?.email || "there").split("@")[0];
   const allowance = planAllowance(d.profile?.plan ?? "scout");
   const usedPct = Math.min(100, Math.round(((allowance - Math.min(d.profile?.credits ?? 0, allowance)) / allowance) * 100));
+
+  const watched = new Set(d.watchlist.map((w) => w.signalId));
 
   const movers = [...d.rows]
     .filter((r) => r.isProduct !== false)
@@ -166,6 +169,7 @@ export default async function DashboardPage() {
                     >
                       {ratio ? ratio.toFixed(2) : "-"}
                     </span>
+                    <WatchButton signalId={r.id} initial={watched.has(r.id)} label={false} />
                   </Link>
                 </li>
               );
@@ -212,7 +216,14 @@ export default async function DashboardPage() {
 
           {/* WATCHLIST with a real, teaching empty state */}
           <section className="rounded-card border border-line bg-surface p-5">
-            <h2 className="display-sm text-ink">Your watchlist</h2>
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="display-sm text-ink">Your watchlist</h2>
+              {d.watchlist.length > 0 && (
+                <Link href="/watchlist" className="text-[12.5px] text-accent transition-opacity hover:opacity-70">
+                  See movement
+                </Link>
+              )}
+            </div>
             {d.watchlist.length === 0 ? (
               <>
                 <p className="mt-2 text-[12.5px] leading-relaxed text-mut">
@@ -233,8 +244,14 @@ export default async function DashboardPage() {
                   return (
                     <li key={w.id} className="flex items-center gap-2.5 py-2.5">
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: p.fg }} />
-                      <span className="min-w-0 flex-1 truncate text-[13px] text-ink">{w.product}</span>
+                      <Link
+                        href={`/analysis?product=${encodeURIComponent(w.product)}&zh=${encodeURIComponent(w.zh)}&niche=${encodeURIComponent(w.niche)}`}
+                        className="min-w-0 flex-1 truncate text-[13px] text-ink transition-opacity hover:opacity-70"
+                      >
+                        {w.product}
+                      </Link>
                       <span className="shrink-0 font-mono text-[10.5px] text-faint">{w.niche}</span>
+                      <WatchButton signalId={w.signalId} initial label={false} />
                     </li>
                   );
                 })}

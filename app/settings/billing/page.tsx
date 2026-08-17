@@ -4,7 +4,9 @@ import { redirect } from "next/navigation";
 import { Shell, PageHead } from "@/components/page-shell";
 import { requireUser } from "@/lib/auth";
 import { supabaseAdmin, isServiceRoleConfigured } from "@/lib/supabase/admin";
-import { planAllowance, type Profile } from "@/lib/dashboard";
+import { planAllowance, watchlistCap, type Profile } from "@/lib/dashboard";
+import { isPlanPurchasable } from "@/lib/stripe";
+import { UpgradeButton, ManageBillingButton } from "./billing-actions";
 
 export const metadata: Metadata = { title: "Billing" };
 export const dynamic = "force-dynamic";
@@ -22,26 +24,43 @@ const COSTS = [
   ["Weekly report", "10"],
 ];
 
+/** Downgrading is a cancellation, and cancellations belong in Stripe's portal where
+ *  the proration and end-of-period rules are handled properly. */
+function ManageBillingScoutNote() {
+  return (
+    <p className="mt-5 rounded-ctl border border-line px-2.5 py-2 text-[11.5px] leading-snug text-mut">
+      To move back to Scout, cancel from the payment portal below.
+    </p>
+  );
+}
+
 function when(iso: string) {
   return new Date(iso).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ upgraded?: string; cancelled?: string }>;
+}) {
+  const { upgraded, cancelled } = await searchParams;
   const { user, error } = await requireUser();
   if (error || !user) redirect("/login?next=%2Fsettings%2Fbilling");
 
   let plan: Profile["plan"] = "scout";
   let credits = 0;
+  let hasCustomer = false;
   let ledger: Array<{ id: string; delta: number; action: string; created_at: string }> = [];
 
   if (isServiceRoleConfigured()) {
     const db = supabaseAdmin();
     const [{ data: p }, { data: bal }, { data: rows }] = await Promise.all([
-      db.from("profiles").select("plan").eq("id", user.id).maybeSingle(),
+      db.from("profiles").select("plan, stripe_customer_id").eq("id", user.id).maybeSingle(),
       db.rpc("credit_balance", { p_user_id: user.id }),
       db.from("credit_ledger").select("id, delta, action, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
     ]);
     plan = (p?.plan as Profile["plan"]) ?? "scout";
+    hasCustomer = Boolean(p?.stripe_customer_id);
     credits = typeof bal === "number" ? bal : 0;
     ledger = rows ?? [];
   }
@@ -55,6 +74,21 @@ export default async function BillingPage() {
         title="Billing and credits"
         sub="Your plan, your balance, and every credit movement on the account."
       />
+
+      {/* Returning from Stripe. The plan itself is set by the webhook, so this states
+          what is actually true rather than claiming the upgrade already applied. */}
+      {upgraded && (
+        <div className="mt-6 max-w-[52rem] rounded-card border border-line bg-posweak px-4 py-3 text-[13px] leading-relaxed text-pos">
+          <b className="font-medium">Payment received.</b> Your {upgraded} plan and credits land the
+          moment Stripe confirms the charge, usually within seconds. Reload if this page still shows
+          the old plan.
+        </div>
+      )}
+      {cancelled && (
+        <div className="mt-6 max-w-[52rem] rounded-card border border-line bg-surface2 px-4 py-3 text-[13px] leading-relaxed text-body">
+          Checkout was closed, so nothing was charged and your plan is unchanged.
+        </div>
+      )}
 
       {/* balance + meter */}
       <section className="mt-8 grid max-w-[52rem] gap-5 sm:grid-cols-[1fr_1fr]">
@@ -123,21 +157,34 @@ export default async function BillingPage() {
                     </li>
                   ))}
                 </ul>
-                <button
-                  disabled
-                  title="Checkout is not connected yet"
-                  className="mt-5 cursor-not-allowed rounded-ctl border border-line py-2 text-[12.5px] font-medium text-mut"
-                >
-                  {current ? "Current plan" : "Checkout not connected"}
-                </button>
+                {current ? (
+                  <button
+                    disabled
+                    className="mt-5 cursor-default rounded-ctl border border-line bg-surface py-2 text-[12.5px] font-medium text-mut"
+                  >
+                    Current plan
+                  </button>
+                ) : t.id === "scout" ? (
+                  <ManageBillingScoutNote />
+                ) : (
+                  <UpgradeButton
+                    plan={t.id as "hunter" | "operator"}
+                    label={`Upgrade to ${t.name}`}
+                    purchasable={isPlanPurchasable(t.id as "hunter" | "operator")}
+                  />
+                )}
               </div>
             );
           })}
         </div>
-        <p className="mt-3 max-w-[64ch] text-[12.5px] leading-relaxed text-mut">
-          Card payments are not live yet: Stripe is not connected, so upgrade buttons are
-          deliberately disabled rather than pretending to work.
-        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="max-w-[62ch] text-[12.5px] leading-relaxed text-mut">
+            Plans are monthly and cancel any time from the payment portal. Your watchlist
+            currently holds up to <span data-numeric className="font-mono">{watchlistCap(plan)}</span>{" "}
+            products.
+          </p>
+          <ManageBillingButton enabled={hasCustomer} />
+        </div>
       </section>
 
       {/* ledger */}

@@ -8,7 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * Marketing routes (/, /pricing, /login) stay public — they are the acquisition
  * surface. Everything behind the product is gated.
  */
-const PROTECTED = ["/dashboard", "/radar", "/analysis", "/reports", "/ask", "/tracker", "/settings"];
+const PROTECTED = ["/dashboard", "/radar", "/watchlist", "/analysis", "/reports", "/ask", "/tracker", "/settings"];
 
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req });

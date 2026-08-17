@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import SignalFeed from "@/components/signal-feed";
 import { Shell, PageHead, SourceBadge, Stat } from "@/components/page-shell";
 import { getRadar } from "@/lib/signals";
+import { requireUser } from "@/lib/auth";
+import { getWatchedIds, watchlistCap, type Profile } from "@/lib/dashboard";
+import { supabaseAdmin, isServiceRoleConfigured } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Radar" };
 export const dynamic = "force-dynamic";
@@ -22,6 +25,20 @@ export default async function RadarPage({
 }) {
   const { niche } = await searchParams;
   const { source, rows, lastIngestAt } = await getRadar(60);
+
+  const { user } = await requireUser();
+  let watched: string[] = [];
+  let plan: Profile["plan"] = "scout";
+  let role = "member";
+  if (user) {
+    watched = await getWatchedIds(user.id);
+    if (isServiceRoleConfigured()) {
+      const { data } = await supabaseAdmin().from("profiles").select("plan, role").eq("id", user.id).maybeSingle();
+      plan = (data?.plan as Profile["plan"]) ?? "scout";
+      role = data?.role ?? "member";
+    }
+  }
+  const canExport = plan === "operator" || role === "admin";
 
   const niches = Array.from(new Set(rows.map((r) => r.niche).filter(Boolean))).sort();
   const visible = niche ? rows.filter((r) => r.niche === niche) : rows;
@@ -94,8 +111,34 @@ export default async function RadarPage({
         </div>
       )}
 
-      <div className="mt-4">
-        <SignalFeed signals={visible} />
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="font-mono text-[11px] text-mut">
+          Tracking{" "}
+          <span data-numeric className="text-ink">
+            {watched.length}
+          </span>{" "}
+          of {watchlistCap(plan)} on your {plan} plan
+        </p>
+        {canExport ? (
+          <a
+            href={`/api/export${niche ? `?niche=${encodeURIComponent(niche)}` : ""}`}
+            className="rounded-ctl border border-line px-2.5 py-1 font-mono text-[11px] text-body transition-colors hover:border-linestrong hover:text-ink"
+          >
+            Export CSV
+          </a>
+        ) : (
+          <a
+            href="/settings/billing"
+            title="CSV export is an Operator feature"
+            className="rounded-ctl border border-line px-2.5 py-1 font-mono text-[11px] text-faint transition-colors hover:text-mut"
+          >
+            Export CSV · Operator
+          </a>
+        )}
+      </div>
+
+      <div className="mt-3">
+        <SignalFeed signals={visible} watched={watched} />
       </div>
 
       <p className="mt-5 max-w-[86ch] text-[11.5px] leading-relaxed text-mut">

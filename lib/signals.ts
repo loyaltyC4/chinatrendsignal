@@ -172,3 +172,97 @@ function seedPayload(): RadarPayload {
     lastIngestStatus: null,
   };
 }
+
+/**
+ * The saved list, resolved directly rather than by filtering the radar.
+ *
+ * Filtering getRadar() would silently drop any saved product that had fallen out of
+ * the top N by velocity — which is precisely the product you most want to keep an eye
+ * on when it cools off. So this queries by watchlist membership instead.
+ *
+ * `movement` compares the newest observation against the one recorded when the row was
+ * saved, so "since you saved it" is measured, not inferred. It is null when we have no
+ * observation from before the save.
+ */
+export type WatchDetail = RadarRow & {
+  savedAt: string;
+  note: string | null;
+  movementPct: number | null;
+};
+
+export async function getWatchlistDetail(userId: string): Promise<WatchDetail[]> {
+  if (!isServiceRoleConfigured()) return [];
+
+  const db = supabaseAdmin();
+  const { data: saved } = await db
+    .from("watchlist")
+    .select("signal_id, note, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (!saved || saved.length === 0) return [];
+
+  const ids = saved.map((s: any) => s.signal_id);
+  const [{ data: signals }, { data: obs }] = await Promise.all([
+    db
+      .from("signals")
+      .select("id, title, title_en, product_term, product_en, is_product, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, velocity_pct, intent_score, wholesale_cny, stage")
+      .in("id", ids),
+    db
+      .from("signal_observations")
+      .select("signal_id, engagement_total, observed_at")
+      .in("signal_id", ids)
+      .order("observed_at", { ascending: true }),
+  ]);
+
+  const history = new Map<string, Array<{ total: number; at: string }>>();
+  for (const o of obs ?? []) {
+    const arr = history.get(o.signal_id) ?? [];
+    arr.push({ total: Number(o.engagement_total ?? 0), at: o.observed_at });
+    history.set(o.signal_id, arr);
+  }
+
+  const byId = new Map((signals ?? []).map((s: any) => [s.id, s]));
+
+  return saved
+    .map((s: any) => {
+      const r = byId.get(s.signal_id);
+      if (!r) return null;
+
+      const points = history.get(s.signal_id) ?? [];
+      const atSave = [...points].reverse().find((p) => new Date(p.at) <= new Date(s.created_at));
+      const latest = points[points.length - 1];
+      const movementPct =
+        atSave && latest && atSave.total > 0
+          ? Math.round(((latest.total - atSave.total) / atSave.total) * 1000) / 10
+          : null;
+
+      const likes = Number(r.likes ?? 0);
+      const saves = Number(r.saves ?? 0);
+
+      return {
+        id: r.id,
+        product: r.product_en || r.title_en || r.title,
+        zh: r.product_term || (r.title_en ? r.title : ""),
+        niche: r.niche || "Unclassified",
+        stage: (r.stage as Signal["stage"]) || "Rising",
+        velocityPct: r.velocity_pct != null ? Number(r.velocity_pct) : 0,
+        intent: r.intent_score ?? (likes > 0 ? Math.min(100, Math.round((saves / likes) * 100)) : 0),
+        wholesaleCny: r.wholesale_cny != null ? Number(r.wholesale_cny) : 0,
+        retailAud: impliedRetailAud(r.wholesale_cny) ?? 0,
+        sources: [platformLabel(r.platform)],
+        refreshed: relativeTime(r.last_seen_at),
+        firstDetectedAt: r.first_detected_at,
+        daysTracked: daysBetween(r.first_detected_at),
+        lastSeenAt: r.last_seen_at,
+        sourceUrl: r.source_url,
+        savesRatio: likes > 0 ? Math.round((saves / likes) * 100) / 100 : null,
+        isProduct: r.is_product ?? null,
+        spark: points.map((p) => p.total).slice(-14),
+        savedAt: s.created_at,
+        note: s.note ?? null,
+        movementPct,
+      } satisfies WatchDetail;
+    })
+    .filter((r): r is WatchDetail => r !== null);
+}

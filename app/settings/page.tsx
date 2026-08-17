@@ -56,6 +56,7 @@ export default async function SettingsPage() {
           displayName={profile.displayName}
           niches={profile.niches}
           weeklyEmail={profile.weeklyEmail}
+          mailerReady={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM)}
           allNiches={allNiches}
         />
       </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import SupplierMatchButton from "@/components/supplier-match-button";
+import WatchButton from "@/components/watch-button";
 import { platformStyle } from "@/lib/platform-style";
 
 /**
@@ -91,7 +92,15 @@ function Provenance({ source, estimated }: { source: string; estimated?: boolean
 const GRID =
   "grid grid-cols-[minmax(0,2.1fr)_.7fr_.9fr_.65fr_.75fr_.6fr] items-center gap-3 max-lg:grid-cols-[minmax(0,2fr)_.7fr_.9fr]";
 
-export default function SignalFeed({ signals }: { signals: Signal[] }) {
+export default function SignalFeed({
+  signals,
+  watched = [],
+}: {
+  signals: Signal[];
+  /** Signal ids the viewer already tracks, so save state is correct on first paint. */
+  watched?: string[];
+}) {
+  const saved = new Set(watched);
   if (!signals.length) {
     return (
       <div className="rounded-card border border-line bg-surface px-6 py-14 text-center">
@@ -116,14 +125,14 @@ export default function SignalFeed({ signals }: { signals: Signal[] }) {
       </div>
       <ul>
         {signals.map((s) => (
-          <SignalRow key={s.id} s={s} />
+          <SignalRow key={s.id} s={s} watching={saved.has(s.id)} />
         ))}
       </ul>
     </div>
   );
 }
 
-function SignalRow({ s }: { s: Signal }) {
+function SignalRow({ s, watching }: { s: Signal; watching: boolean }) {
   const hasPrice = s.wholesaleCny > 0 && s.retailAud > 0;
   const spread = hasPrice ? s.retailAud / (s.wholesaleCny * 0.213) : null;
   const stageColor = STAGE[s.stage] ?? STAGE.Rising;
@@ -142,6 +151,7 @@ function SignalRow({ s }: { s: Signal }) {
               <Provenance key={src} source={src} />
             ))}
             <span className="truncate text-[11.5px] text-mut">{s.niche}</span>
+            <WatchButton signalId={s.id} initial={watching} label={false} />
             <SupplierMatchButton keyword={s.zh || s.product} />
           </div>
         </div>

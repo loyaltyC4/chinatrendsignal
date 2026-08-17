@@ -42,11 +42,20 @@ export async function POST(req: NextRequest) {
   }
 
   const type = event?.type;
+  const obj = event.data?.object ?? {};
+
+  // A cancelled or expired subscription must actually take the plan away, otherwise
+  // someone stops paying and keeps Operator forever. Credits already granted stay:
+  // they were paid for.
+  if (type === "customer.subscription.deleted") {
+    const downgraded = await downgrade(obj.customer, obj.metadata?.user_id);
+    return NextResponse.json({ received: true, downgraded });
+  }
+
   if (type !== "checkout.session.completed" && type !== "invoice.payment_succeeded") {
     return NextResponse.json({ received: true, ignored: type });
   }
 
-  const obj = event.data?.object ?? {};
   const customerId: string | undefined = obj.customer;
   const priceId: string | undefined = obj.lines?.data?.[0]?.price?.id || obj.metadata?.price_id;
 
@@ -66,6 +75,7 @@ export async function POST(req: NextRequest) {
 
   const granted = await grantCredits({
     customerId,
+    userId: obj.metadata?.user_id || obj.client_reference_id || undefined,
     plan: entry.plan,
     credits: entry.credits,
     reference: `stripe:${obj.id}`,
@@ -100,6 +110,7 @@ function verifyStripeSignature(payload: string, header: string, secret: string):
  */
 async function grantCredits(input: {
   customerId: string;
+  userId?: string;
   plan: PlanKey;
   credits: number;
   reference: string;
@@ -110,14 +121,28 @@ async function grantCredits(input: {
   }
   const db = supabaseAdmin();
 
-  const { data: profile, error: lookupError } = await db
+  let { data: profile } = await db
     .from("profiles")
     .select("id")
     .eq("stripe_customer_id", input.customerId)
     .maybeSingle();
 
-  if (lookupError || !profile) {
-    console.error("grantCredits: no profile for stripe customer", { customerId: input.customerId });
+  // Fallback to the id we stamped into metadata at checkout. Covers a payment made
+  // through a customer we did not create (a Stripe dashboard invoice, say), where
+  // dropping the grant would mean a paid customer receiving nothing.
+  if (!profile && input.userId) {
+    const { data: byId } = await db.from("profiles").select("id").eq("id", input.userId).maybeSingle();
+    if (byId) {
+      profile = byId;
+      await db.from("profiles").update({ stripe_customer_id: input.customerId }).eq("id", byId.id);
+    }
+  }
+
+  if (!profile) {
+    console.error("grantCredits: no profile for stripe customer", {
+      customerId: input.customerId,
+      userId: input.userId,
+    });
     return false;
   }
 
@@ -135,5 +160,31 @@ async function grantCredits(input: {
   }
 
   await db.from("profiles").update({ plan: input.plan }).eq("id", profile.id);
+  return true;
+}
+
+/**
+ * Put an account back on the free plan when its subscription ends. Resolved by
+ * customer id, falling back to the user id in subscription metadata.
+ */
+async function downgrade(customerId?: string, userId?: string) {
+  if (!isServiceRoleConfigured()) return false;
+  const db = supabaseAdmin();
+
+  let id = userId ?? null;
+  if (!id && customerId) {
+    const { data } = await db.from("profiles").select("id").eq("stripe_customer_id", customerId).maybeSingle();
+    id = data?.id ?? null;
+  }
+  if (!id) {
+    console.error("downgrade: could not resolve account", { customerId, userId });
+    return false;
+  }
+
+  const { error } = await db.from("profiles").update({ plan: "scout" }).eq("id", id);
+  if (error) {
+    console.error("downgrade: update failed", error);
+    return false;
+  }
   return true;
 }

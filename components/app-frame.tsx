@@ -40,6 +40,7 @@ export default function AppFrame({
           [
             { href: "/dashboard", label: "Today" },
             { href: "/radar", label: "Radar" },
+            { href: "/watchlist", label: "Watchlist" },
             { href: "/analysis", label: "Analysis" },
             { href: "/ask", label: "Ask the radar" },
             { href: "/reports", label: "Weekly report" },
