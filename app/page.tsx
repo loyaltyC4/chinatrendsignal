@@ -6,27 +6,22 @@ import Faq from "@/components/faq";
 export const dynamic = "force-dynamic";
 
 /*
- * Homepage redesign. Keeps the app's marketing chrome (MarketingNav /
- * MarketingFooter) and the Geist font wiring from layout, and layers the new
- * creative direction on top:
+ * Homepage redesign v2. Layers Mint Studio's section patterns onto CTS's
+ * existing design system (Geist + electric-blue tokens + platform hues),
+ * with CTS content throughout.
  *
- *   - Hero: "See it in China before the window shuts." with a cooled spectrum on
- *     the emphasis word. Floating product cards removed per the user.
- *   - Source wall: the bidcheck.co.za hero logo-marquee, replicated and switched
- *     to full colour (the original is monochrome via filter:brightness(0)).
- *   - Process: "From signal to listing, in one afternoon." with a flat-vector
- *     people illustration per step (generated in the house style: no black
- *     outlines, flat solid colours, cream background, confetti).
- *   - Three checks: a pillar/bar band adapted from the statistics-card pattern,
- *     with the four real metrics (factory unit, demand, margin, first-seen).
- *   - Pricing, FAQ, closing band.
+ * SECTIONS (top to bottom):
+ *  1. Hero + colour logo marquee (existing)
+ *  2. Process: "From signal to listing" — unboxed illustrations per step
+ *  3. NEW: "Listing created in seconds" — brand-scan mockup (Mint Studio "Brand DNA" pattern)
+ *  4. NEW: "Built for every seller" — pill-tag niches (Mint Studio "Built for any business" pattern)
+ *  5. Three checks: pillar band (existing)
+ *  6. NEW: "Stop guessing. Read the room." — intelligence section (Mint Studio "intel" pattern)
+ *  7. Pricing, FAQ, closing band (existing)
  */
 
 const BF = "c=1bxeoe1y0zo3oi7mr8z4fruj0nrlDlja6p5";
 
-// Full-colour platform logos via Brandfetch's public embeddable CDN.
-// Douyin, Xiaohongshu and 1688 have no clean Brandfetch entry, so they render as
-// the brand's coloured glyph tiles (the characters the product already uses).
 const LOGOS: { name: string; url?: string; glyph?: string; hue?: string }[] = [
   { name: "Douyin", glyph: "抖", hue: "#161823" },
   { name: "Xiaohongshu", glyph: "红", hue: "#f5325b" },
@@ -66,6 +61,46 @@ const STEPS = [
   },
 ];
 
+// "Listing created in seconds" — extracted signal cards (Brand DNA pattern)
+const SIGNAL_CARDS = [
+  { label: "Platform", value: "Xiaohongshu · pet supplies", hue: "var(--c-xhs)", ic: "ph-rss" },
+  { label: "Demand", value: "0.96 saves-to-likes", hue: "var(--c-xhs)", ic: "ph-heart" },
+  { label: "Factory unit", value: "¥14 on 1688", hue: "var(--c-1688)", ic: "ph-factory" },
+  { label: "Sell spread", value: "US$18-28 TikTok Shop", hue: "var(--c-taobao)", ic: "ph-storefront-logo" },
+  { label: "First seen", value: "6 days ago, logged", hue: "var(--c-douyin)", ic: "ph-calendar" },
+];
+
+// "Built for every seller" — niche pills (Mint Studio niches pattern)
+const NICHES_A = [
+  { t: "Pet supplies", ic: "ph-paw-paw" },
+  { t: "Baby and kids", ic: "ph-baby" },
+  { t: "Kitchen", ic: "ph-cooking-pot" },
+  { t: "Beauty", ic: "ph-sparkle" },
+  { t: "Fitness", ic: "ph-barbell" },
+  { t: "Home", ic: "ph-house-line" },
+  { t: "Phone accessories", ic: "ph-device-mobile" },
+  { t: "Outdoor", ic: "ph-mountains" },
+];
+
+const NICHES_B = [
+  { t: "Demand proof", ic: "ph-heart" },
+  { t: "Supplier match", ic: "ph-factory" },
+  { t: "Margin spread", ic: "ph-chart-line-up" },
+  { t: "First-seen date", ic: "ph-calendar" },
+  { t: "Reverse image", ic: "ph-magnifying-glass" },
+  { t: "KOL rate card", ic: "ph-microphone" },
+  { t: "Price history", ic: "ph-trend-up" },
+  { t: "Export-ready", ic: "ph-file-arrow-out" },
+];
+
+// "Stop guessing. Read the room." — credibility stats (Mint Studio intel pattern)
+const CRED_STATS = [
+  { num: "4", label: "platforms", color: "var(--c-accent)" },
+  { num: "1", label: "index", color: "var(--c-xhs)" },
+  { num: "25-40×", label: "gross spread", color: "var(--c-1688)" },
+  { num: "7d", label: "free tier delay", color: "var(--c-taobao)" },
+];
+
 const PILLARS = [
   { val: "¥14", top: "Factory unit", bot: "verified on 1688", h: "33%", lead: false },
   { val: "0.96", top: "Demand", bot: "saves-to-likes on XHS", h: "52%", lead: false },
@@ -95,13 +130,17 @@ function LogoSet() {
   ));
 }
 
+const PILL_HUES = [
+  "var(--c-xhs)", "var(--c-1688)", "var(--c-taobao)", "var(--c-douyin)",
+  "var(--c-accent)", "var(--c-xhs)", "var(--c-1688)", "var(--c-taobao)",
+];
+
 export default function Home() {
   return (
     <div className="min-h-[100dvh] bg-canvas">
       <MarketingNav />
-
       <main id="main">
-        {/* 1. HERO */}
+        {/* 1. HERO + colour logo marquee */}
         <section className="spectrum-wash">
           <div className="mx-auto max-w-[1160px] px-5 pt-20 pb-16 text-center sm:px-8 lg:pt-24">
             <h1 className="display-xl mx-auto max-w-[17ch] text-ink">
@@ -119,8 +158,6 @@ export default function Home() {
                 See pricing
               </Link>
             </div>
-
-            {/* source marquee, bidcheck hero treatment in full colour */}
             <p className="label mt-14 text-mut">One radar, every platform that matters</p>
             <div className="cts-ticker mt-6" aria-label="Platforms covered">
               <div className="cts-track">
@@ -131,13 +168,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 2. PROCESS */}
+        {/* 2. PROCESS — unboxed illustrations, one per step */}
         <section id="how" className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <div className="overflow-hidden rounded-card border border-line bg-surface">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/step-spot.jpg" alt="A seller discovering a trending product on their phone beside an open parcel box" className="block h-auto w-full" />
-            </div>
             <div>
               <h2 className="display-lg text-ink">
                 From <span className="text-accent">signal</span> to listing, in one afternoon.
@@ -148,9 +181,9 @@ export default function Home() {
               </p>
               <div className="mt-8">
                 {STEPS.map((s, i) => (
-                  <div key={s.t} className={`flex items-center gap-5 py-5 ${i > 0 ? "border-t border-line" : ""}`}>
+                  <div key={s.t} className={`flex items-center gap-6 py-6 ${i > 0 ? "border-t border-line" : ""}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.img} alt={s.alt} className="h-20 w-20 shrink-0 rounded-[18px] border border-line object-cover" />
+                    <img src={s.img} alt={s.alt} className="h-24 w-24 shrink-0 rounded-[14px] object-cover" />
                     <div>
                       <p className="text-[15.5px] font-semibold text-ink">{s.t}</p>
                       <p className="mt-1 text-[13.5px] leading-relaxed text-body">{s.d}</p>
@@ -159,10 +192,95 @@ export default function Home() {
                 ))}
               </div>
             </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/step-spot.jpg" alt="A seller discovering a trending product on their phone beside an open parcel box" className="block h-auto w-full rounded-card" />
           </div>
         </section>
 
-        {/* 3. THREE CHECKS: pillar band */}
+        {/* 3. LISTING CREATED IN SECONDS — brand-scan mockup (Mint Studio "Brand DNA" pattern) */}
+        <section className="cts-bdna" id="signal-scan">
+          <div className="mx-auto max-w-[1160px] px-5 sm:px-8">
+            <div className="cts-bdna-top">
+              <span className="cts-bd-eyebrow">Signal scan</span>
+              <h2 className="display-lg text-ink">Your listing, read in seconds.</h2>
+              <p className="cts-bdna-sub text-body">
+                We scan the Chinese platforms and extract the demand, supply, and margin signals
+                that make a product worth listing, then stamp every alert with the date we first saw it.
+              </p>
+            </div>
+            <div className="cts-bdna-stage" id="scanStage">
+              {/* Left: browser mockup with real illustration inside */}
+              <div className="cts-bdna-browser">
+                <div className="cts-bdna-bar">
+                  <span className="d d1" /> <span className="d d2" /> <span className="d d3" />
+                  <span className="u">xiaohongshu.com/discovery/item/steam-pet-brush</span>
+                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/step-spot.jpg" alt="A Xiaohongshu post about a trending steam pet brush" className="cts-bdna-hero-img" />
+              </div>
+              {/* Right: extracted signal cards */}
+              <div className="cts-bdna-out">
+                {SIGNAL_CARDS.map((c, i) => (
+                  <div key={c.label} className="cts-bdna-row" style={{ transitionDelay: `${i * 0.12}s` }}>
+                    <span className="cts-bdna-node" style={{ borderColor: c.hue, color: c.hue }}>
+                      <i className={`ph-fill ${c.ic}`} />
+                    </span>
+                    <div className="cts-bdna-rc">
+                      <span className="cts-bdna-lbl">{c.label}</span>
+                      <span className="text-[14px] font-medium text-ink">{c.value}</span>
+                    </div>
+                  </div>
+                ))}
+                <span className="cts-bdna-caption text-mut">
+                  <i className="ph-fill ph-check-circle" style={{ color: "var(--c-accent)" }} />
+                  From post to listing-ready signal, in seconds.
+                </span>
+              </div>
+              {/* Connecting SVG lines (animated draw on scroll) */}
+              <svg className="cts-bdna-conn" viewBox="0 0 500 400" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M250 80 C 180 80 180 160 110 160" stroke="var(--c-xhs)" />
+                <path d="M250 140 C 180 140 180 200 110 200" stroke="var(--c-xhs)" />
+                <path d="M250 200 C 180 200 180 240 110 240" stroke="var(--c-1688)" />
+                <path d="M250 260 C 180 260 180 280 110 280" stroke="var(--c-taobao)" />
+                <path d="M250 320 C 180 320 180 320 110 320" stroke="var(--c-douyin)" />
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. BUILT FOR EVERY SELLER — pill niches (Mint Studio "Built for any business" pattern) */}
+        <section className="cts-niches" id="niches">
+          <div className="mx-auto max-w-[1160px] px-5 sm:px-8">
+            <div className="cts-nv2-block">
+              <h3 className="cts-nv2-label text-ink">Built for <span className="spectrum-text">every seller.</span></h3>
+              <div className="cts-nv2-grid">
+                {NICHES_A.map((n, i) => (
+                  <span key={n.t} className="cts-nv2-pill" style={{ transitionDelay: `${i * 0.05}s` }}>
+                    <span className="cts-nv2-ic" style={{ background: PILL_HUES[i % 8] }}>
+                      <i className={`ph-fill ${n.ic}`} />
+                    </span>
+                    {n.t}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="cts-nv2-block">
+              <h3 className="cts-nv2-label text-ink">Every signal, <span className="spectrum-text">on tap.</span></h3>
+              <div className="cts-nv2-grid">
+                {NICHES_B.map((n, i) => (
+                  <span key={n.t} className="cts-nv2-pill" style={{ transitionDelay: `${i * 0.05}s` }}>
+                    <span className="cts-nv2-ic" style={{ background: PILL_HUES[(i + 4) % 8] }}>
+                      <i className={`ph-fill ${n.ic}`} />
+                    </span>
+                    {n.t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. THREE CHECKS — pillar band (existing) */}
         <section className="border-y border-line bg-surface2/40">
           <div className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
             <div className="mx-auto max-w-[680px] text-center">
@@ -196,7 +314,66 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 4. PRICING */}
+        {/* 6. STOP GUESSING. READ THE ROOM. — intelligence section (Mint Studio "intel" pattern) */}
+        <section className="cts-intel" id="intel">
+          <div className="mx-auto max-w-[1160px] px-5 sm:px-8">
+            {/* Credibility stats row */}
+            <div className="cts-cred">
+              <span className="label text-mut"><span className="inline-block h-[7px] w-[7px] rounded-full bg-accent" />Read from the source</span>
+              <h3 className="cts-cred-line text-ink">Not just trends. <span className="spectrum-text">It&apos;s signal intelligence.</span></h3>
+              <div className="cts-cred-stats">
+                {CRED_STATS.map((s, i) => (
+                  <div key={s.label} className="cts-cstat">
+                    <b style={{ color: s.color }}>{s.num}</b>
+                    <span>{s.label}</span>
+                    {i < CRED_STATS.length - 1 && <div className="cts-cdiv" />}
+                  </div>
+                ))}
+              </div>
+              <div className="cts-cred-wire"><span className="cts-spark" /></div>
+              <div className="cts-cred-logos">
+                <span className="text-[10px] font-mono uppercase tracking-[0.1em] text-faint opacity-70">Read from</span>
+                <span className="cts-glyph" style={{ background: "var(--c-douyin)" }}>抖</span>
+                <span className="cts-glyph" style={{ background: "var(--c-xhs)" }}>红</span>
+                <span className="cts-glyph" style={{ background: "var(--c-1688)" }}>16</span>
+                <span className="cts-glyph" style={{ background: "var(--c-taobao)" }}>淘</span>
+              </div>
+            </div>
+            {/* Headline + mirror stage */}
+            <div className="cts-intel-head">
+              <span className="label text-mut"><span className="inline-block h-[7px] w-[7px] rounded-full bg-accent" />Read the room</span>
+              <h2 className="display-lg text-ink">Stop guessing.<br />Read the room.</h2>
+              <p className="text-[15px] text-mut">AI-driven signal analysis for winning products.</p>
+            </div>
+            <div className="cts-mir-stage" id="mirStage">
+              <svg className="cts-mir-lines" viewBox="0 0 1180 380" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M120 250 C 210 250 210 165 300 165" stroke="var(--c-douyin)" />
+                <path d="M120 300 C 250 300 250 335 380 335" stroke="var(--c-xhs)" />
+                <path d="M150 120 C 240 120 250 90 340 90" stroke="var(--c-taobao)" />
+                <path d="M300 300 C 380 300 380 235 470 235" stroke="var(--c-accent)" />
+                <path d="M300 150 C 400 150 410 110 500 110" stroke="var(--c-taobao)" />
+                <path d="M330 330 C 470 330 520 345 620 345" stroke="var(--c-1688)" />
+                <path d="M470 120 C 560 120 560 200 650 200" stroke="var(--c-xhs)" />
+                <path d="M470 300 C 560 300 560 250 650 250" stroke="var(--c-accent)" />
+                <path d="M620 150 C 720 150 740 120 840 120" stroke="var(--c-douyin)" />
+                <path d="M620 320 C 720 320 760 300 860 290" stroke="var(--c-accent)" />
+                <path d="M650 210 C 760 210 800 180 900 175" stroke="var(--c-xhs)" />
+                <path d="M780 130 C 880 130 900 160 1000 160" stroke="var(--c-1688)" />
+                <path d="M780 290 C 880 290 900 260 1000 255" stroke="var(--c-taobao)" />
+                <path d="M900 190 C 980 190 1020 165 1100 160" stroke="var(--c-douyin)" />
+                <circle className="cts-mir-node" cx="120" cy="250" r="6" />
+                <circle className="cts-mir-node" cx="300" cy="165" r="6" />
+                <circle className="cts-mir-node" cx="500" cy="110" r="6" />
+                <circle className="cts-mir-node" cx="650" cy="200" r="6" />
+                <circle className="cts-mir-node" cx="840" cy="120" r="6" />
+                <circle className="cts-mir-node" cx="1000" cy="160" r="6" />
+                <circle className="cts-mir-node" cx="1100" cy="160" r="6" />
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        {/* 7. PRICING */}
         <section id="pricing" className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
           <h2 className="display-lg text-ink">One winning product pays for years of this.</h2>
           <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed text-body">
@@ -237,7 +414,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 5. FAQ */}
+        {/* 8. FAQ */}
         <section className="mx-auto max-w-[46rem] px-5 py-20 sm:px-8">
           <h2 className="display-lg max-w-[20ch] text-ink">Questions you should ask.</h2>
           <div className="mt-8">
@@ -245,7 +422,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 6. CLOSING BAND */}
+        {/* 9. CLOSING BAND */}
         <section className="border-t border-line bg-surface">
           <div className="mx-auto max-w-[1160px] px-5 py-20 text-center sm:px-8">
             <hr className="spectrum-rule mx-auto mb-10 w-24 rounded-full" />
@@ -264,9 +441,9 @@ export default function Home() {
 
       <MarketingFooter />
 
-      {/* Marquee + pillar styles, scoped to this page. The marquee replicates
-          bidcheck.co.za's hero logo ticker, switched to full colour. */}
+      {/* Scoped styles: marquee (existing) + new Mint Studio-adapted sections */}
       <style>{`
+        /* Marquee */
         .cts-ticker{width:100%;max-width:1060px;margin:0 auto;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
         .cts-track{display:flex;width:max-content;animation:cts-marq 44s linear infinite;will-change:transform}
         .cts-ticker:hover .cts-track{animation-play-state:paused}
@@ -277,6 +454,7 @@ export default function Home() {
         .cts-ticker:hover .cts-logo img{opacity:1}
         .cts-glyph{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff}
 
+        /* Pillar band */
         .cts-pillars{height:380px}
         .cts-pillar{position:relative;flex:1;display:flex;flex-direction:column}
         .cts-track2{position:relative;flex:1;border-radius:40px;overflow:hidden;background-color:var(--c-surface-2);background-image:linear-gradient(135deg,var(--c-line) 25%,transparent 25.5%,transparent 50%,var(--c-line) 50.5%,var(--c-line) 75%,transparent 75.5%,transparent);background-size:10px 10px}
@@ -291,7 +469,94 @@ export default function Home() {
         .cts-lbl b{display:block;font-size:14px;font-weight:700;color:var(--c-ink)}
         @media(max-width:760px){.cts-pillars{height:260px;gap:6px}.cts-val{font-size:14px;height:40px;padding:0 10px}.cts-track2,.cts-bar{border-radius:24px}.cts-lbl{font-size:10.5px}}
         @media (prefers-reduced-motion:reduce){.cts-track,.cts-bar{animation:none}}
+
+        /* Signal scan (Brand DNA pattern) */
+        .cts-bdna{padding:clamp(80px,12vh,120px) 0;position:relative}
+        .cts-bdna-top{max-width:680px;margin-bottom:30px}
+        .cts-bd-eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--c-accent);background:color-mix(in oklab,var(--c-accent) 10%,transparent);border:1px solid color-mix(in oklab,var(--c-accent) 25%,transparent);padding:5px 11px;border-radius:999px;margin-bottom:16px}
+        .cts-bdna-sub{font-size:clamp(1.02rem,1.4vw,1.2rem);color:var(--c-muted);margin-top:14px;max-width:54ch}
+        .cts-bdna-stage{position:relative;display:grid;grid-template-columns:1.02fr .98fr;gap:30px;align-items:center}
+        @media(max-width:920px){.cts-bdna-stage{grid-template-columns:1fr;gap:22px}}
+        .cts-bdna-conn{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
+        @media(max-width:920px){.cts-bdna-conn{display:none}}
+        .cts-bdna-conn path{fill:none;stroke-width:2;stroke-linecap:round;stroke-dasharray:300;stroke-dashoffset:300;transition:stroke-dashoffset 1.3s}
+        .cts-bdna-stage.lit .cts-bdna-conn path{stroke-dashoffset:0}
+        .cts-bdna-browser{position:relative;z-index:2;background:#fff;border:1px solid var(--c-line);border-radius:18px;box-shadow:0 26px 60px -26px rgba(14,21,36,.28);overflow:hidden}
+        .cts-bdna-bar{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid var(--c-line);background:var(--c-surface-2)}
+        .cts-bdna-bar .d{width:10px;height:10px;border-radius:50%}
+        .cts-bdna-bar .d1{background:#ff5f57}.cts-bdna-bar .d2{background:var(--c-accent)}.cts-bdna-bar .d3{background:#22c55e}
+        .cts-bdna-bar .u{flex:1;display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--c-line);border-radius:999px;padding:6px 12px;font-family:var(--font-mono);font-size:.72rem;color:var(--c-muted)}
+        .cts-bdna-bar .u i{color:var(--c-accent);font-size:.85rem}
+        .cts-bdna-hero-img{position:relative;width:100%;height:auto;display:block;aspect-ratio:1/0.94;object-fit:cover}
+        .cts-bdna-out{position:relative;z-index:2;display:flex;flex-direction:column;gap:13px}
+        .cts-bdna-row{display:flex;align-items:center;gap:14px;opacity:0;transform:translateX(14px);transition:opacity .5s,transform .5s cubic-bezier(.22,1,.36,1)}
+        .cts-bdna-stage.lit .cts-bdna-row{opacity:1;transform:none}
+        .cts-bdna-node{flex-shrink:0;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1.5px solid var(--c-accent);color:var(--c-accent);font-size:1rem;box-shadow:0 4px 12px color-mix(in oklab,var(--c-accent) 18%,transparent)}
+        .cts-bdna-rc{flex:1;min-width:0;background:#fff;border:1px solid var(--c-line);border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(14,21,36,.04)}
+        .cts-bdna-lbl{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-faint);display:block;margin-bottom:8px}
+        .cts-bdna-caption{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:.72rem;color:var(--c-muted);margin-top:26px}
+        .cts-bdna-caption i{color:var(--c-accent)}
+
+        /* Niches (Built for any business pattern) */
+        .cts-niches{padding:clamp(80px,12vh,120px) 0;background:var(--c-surface);border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line)}
+        .cts-nv2-block{max-width:880px;margin:0 auto 42px;text-align:center;opacity:0;transform:translateY(18px);transition:opacity .6s,transform .6s cubic-bezier(.22,1,.36,1)}
+        .cts-nv2-block.lit{opacity:1;transform:none}
+        .cts-nv2-block:last-child{margin-bottom:0}
+        .cts-nv2-label{font-family:var(--font-geist-sans);font-weight:800;font-size:clamp(1.7rem,3.8vw,2.7rem);letter-spacing:-.025em;line-height:1.05;margin-bottom:22px}
+        .cts-nv2-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+        .cts-nv2-pill{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--c-line);border-radius:999px;padding:9px 18px 9px 9px;font-weight:600;font-size:1rem;color:var(--c-ink);box-shadow:0 1px 3px rgba(14,21,36,.06);opacity:0;transform:translateY(16px) scale(.92);transition:opacity .5s ease,transform .55s cubic-bezier(.34,1.56,.64,1),border-color .25s,box-shadow .25s}
+        .cts-nv2-block.lit .cts-nv2-pill{opacity:1;transform:none}
+        .cts-nv2-pill:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--c-accent),0 6px 20px rgba(14,21,36,.1)}
+        .cts-nv2-ic{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#fff;font-size:.85rem;flex-shrink:0}
+        @media(max-width:640px){.cts-nv2-pill{font-size:.9rem;padding:8px 15px 8px 8px}.cts-nv2-ic{width:22px;height:22px;font-size:.75rem}}
+
+        /* Intelligence (Stop guessing. Read the room. pattern) */
+        .cts-intel{padding:clamp(60px,8vh,90px) 0 clamp(60px,8vh,90px)}
+        .cts-cred{max-width:940px;margin:0 auto 36px;display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center;padding-bottom:34px;border-bottom:1px solid var(--c-line)}
+        .cts-cred-line{font-family:var(--font-geist-sans);font-weight:700;font-size:clamp(1.3rem,2.6vw,2rem);letter-spacing:-.02em;line-height:1.05;color:var(--c-ink)}
+        .cts-cred-stats{display:flex;align-items:center;justify-content:center;gap:clamp(14px,3vw,38px);flex-wrap:wrap}
+        .cts-cstat{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:92px}
+        .cts-cstat b{font-family:var(--font-geist-sans);font-weight:800;font-size:clamp(2rem,3.6vw,3rem);line-height:1;letter-spacing:-.025em}
+        .cts-cstat span{font-family:var(--font-mono);font-size:.61rem;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted)}
+        .cts-cdiv{width:1px;height:38px;background:var(--c-line-strong);flex-shrink:0}
+        .cts-cred-wire{position:relative;height:2px;width:min(560px,82%);border-radius:2px;background:linear-gradient(90deg,transparent,var(--c-line-strong) 28%,var(--c-line-strong) 72%,transparent);overflow:hidden}
+        .cts-spark{position:absolute;top:-1px;bottom:-1px;left:-120px;width:120px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--c-accent),var(--c-xhs),var(--c-1688),var(--c-taobao),transparent);box-shadow:0 0 10px color-mix(in oklab,var(--c-accent) 45%,transparent);animation:cts-spark-flow 7s cubic-bezier(.65,0,.35,1) infinite}
+        @keyframes cts-spark-flow{from{left:-120px}to{left:100%}}
+        .cts-cred-logos{display:flex;gap:clamp(16px,3vw,30px);align-items:center;flex-wrap:wrap;justify-content:center}
+        .cts-cred-logos .cts-glyph{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;opacity:.5;transition:opacity .3s}
+        .cts-cred-logos:hover .cts-glyph{opacity:.8}
+        .cts-intel-head{max-width:680px;margin-bottom:24px;display:flex;flex-direction:column;gap:13px}
+        .cts-intel-head h2{font-weight:800;font-size:clamp(2.4rem,6vw,4.6rem);letter-spacing:-.035em;line-height:.94}
+        .cts-mir-stage{position:relative;height:380px;max-width:1100px;margin:6px auto 0}
+        .cts-mir-lines{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
+        .cts-mir-lines path{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1600;stroke-dashoffset:1600;transition:stroke-dashoffset 1.9s}
+        .cts-mir-stage.lit .cts-mir-lines path{stroke-dashoffset:0}
+        .cts-mir-node{fill:#fff;stroke-width:2.5;opacity:0;transition:opacity .5s .9s}
+        .cts-mir-stage.lit .cts-mir-node{opacity:1}
+        @media (prefers-reduced-motion:reduce){.cts-spark,.cts-mir-lines path{animation:none}.cts-mir-lines path{stroke-dashoffset:0}.cts-mir-node{opacity:1}}
       `}</style>
+
+      {/* Scroll-reveal: add .lit class to stages when they enter viewport */}
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function(){
+          var io = new IntersectionObserver(function(entries){
+            entries.forEach(function(e){
+              if(e.isIntersecting){
+                e.target.classList.add('lit');
+                e.target.classList.add('live');
+                io.unobserve(e.target);
+              }
+            });
+          }, { threshold: 0.25 });
+          function scan(){
+            document.querySelectorAll('.cts-bdna-stage, .cts-nv2-block, .cts-mir-stage').forEach(function(el){
+              io.observe(el);
+            });
+          }
+          if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan);
+          else scan();
+        })();
+      ` }} />
     </div>
   );
 }
