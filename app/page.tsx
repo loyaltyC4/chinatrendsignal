@@ -3,6 +3,8 @@ import MarketingNav from "@/components/marketing-nav";
 import MarketingFooter from "@/components/marketing-footer";
 import Faq from "@/components/faq";
 import ReadTheRoom from "@/components/read-the-room";
+import ProcessStepper from "@/components/process-stepper";
+import RadarLive from "@/components/radar-live";
 
 export const dynamic = "force-dynamic";
 
@@ -40,36 +42,6 @@ const LOGOS: { name: string; url?: string; glyph?: string; hue?: string }[] = [
   { name: "Zhihu", url: `https://cdn.brandfetch.io/idm5wK3FJf/w/800/h/375/theme/dark/logo.png?${BF}` },
   { name: "Instagram", url: `https://cdn.brandfetch.io/ido5G85nya/theme/dark/symbol.svg?${BF}` },
   { name: "YouTube", url: `https://cdn.brandfetch.io/idVfYwcuQz/theme/dark/logo.svg?${BF}` },
-];
-
-const STEPS = [
-  {
-    img: "/step-spot.jpg",
-    alt: "A person holding a magnifying glass up to a phone, spotting a trend",
-    t: "We spot the demand",
-    d: "Saves beating likes on Xiaohongshu means bookmark-to-buy intent, not vanity views.",
-  },
-  {
-    img: "/step-match.jpg",
-    alt: "A person comparing a parcel box with a product photo on a phone",
-    t: "We match the factory",
-    d: "1688 and Taobao are checked for every candidate, including reverse image search from the viral photo.",
-  },
-  {
-    img: "/step-list.jpg",
-    alt: "A person celebrating a listing launching from a laptop",
-    t: "You list it first",
-    d: "The alert carries the unit cost and the live TikTok Shop spread, so you can price and list the same day.",
-  },
-];
-
-// "Listing created in seconds" — extracted signal cards (Brand DNA pattern)
-const SIGNAL_CARDS = [
-  { label: "Platform", value: "Xiaohongshu · pet supplies", hue: "var(--c-xhs)", ic: "ph-rss" },
-  { label: "Demand", value: "0.96 saves-to-likes", hue: "var(--c-xhs)", ic: "ph-heart" },
-  { label: "Factory unit", value: "¥14 on 1688", hue: "var(--c-1688)", ic: "ph-factory" },
-  { label: "Sell spread", value: "US$18-28 TikTok Shop", hue: "var(--c-taobao)", ic: "ph-storefront-logo" },
-  { label: "First seen", value: "6 days ago, logged", hue: "var(--c-douyin)", ic: "ph-calendar" },
 ];
 
 // "Built for every seller" — niche pills (Mint Studio niches pattern)
@@ -176,82 +148,38 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 2. PROCESS — unboxed illustrations, one per step */}
+        {/* 2. PROCESS — interactive stepper with real product-UI mockups */}
         <section id="how" className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <div>
-              <h2 className="display-lg text-ink">
-                From <span className="text-accent">signal</span> to listing, in one afternoon.
-              </h2>
-              <p className="mt-4 max-w-[48ch] text-[15px] leading-relaxed text-body">
-                Every alert lands with the product, the factory, and the margin already checked.
-                You go from seeing a trend to listing it while the window is still open.
-              </p>
-              <div className="mt-8">
-                {STEPS.map((s, i) => (
-                  <div key={s.t} className={`flex items-center gap-6 py-6 ${i > 0 ? "border-t border-line" : ""}`}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.img} alt={s.alt} className="h-28 w-28 shrink-0 rounded-full object-cover" />
-                    <div>
-                      <p className="text-[15.5px] font-semibold text-ink">{s.t}</p>
-                      <p className="mt-1 text-[13.5px] leading-relaxed text-body">{s.d}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/step-spot.jpg" alt="A seller discovering a trending product on their phone beside an open parcel box" className="block h-auto w-full rounded-card" />
+          <div className="mx-auto max-w-[720px] text-center">
+            <h2 className="display-lg text-ink">
+              From <span className="text-accent">signal</span> to listing, in one afternoon.
+            </h2>
+            <p className="mx-auto mt-4 max-w-[52ch] text-[15px] leading-relaxed text-body">
+              Every alert lands with the product, the factory, and the margin already checked.
+              You go from seeing a trend to listing it while the window is still open.
+            </p>
+          </div>
+          <div className="mt-12">
+            <ProcessStepper />
           </div>
         </section>
 
-        {/* 3. LISTING CREATED IN SECONDS — brand-scan mockup (Mint Studio "Brand DNA" pattern) */}
-        <section className="cts-bdna" id="signal-scan">
+        {/* 3. RADAR LIVE — animated feed of the actual product surface */}
+        <section className="cts-rlv-sec" id="radar-live">
           <div className="mx-auto max-w-[1160px] px-5 sm:px-8">
-            <div className="cts-bdna-top">
-              <span className="cts-bd-eyebrow">Signal scan</span>
-              <h2 className="display-lg text-ink">Your listing, read in seconds.</h2>
-              <p className="cts-bdna-sub text-body">
-                We scan the Chinese platforms and extract the demand, supply, and margin signals
-                worth listing, then stamp every alert with the date we saw it.
+            <div className="cts-rlv-top">
+              <span className="cts-bd-eyebrow">Your radar</span>
+              <h2 className="display-lg text-ink">
+                What you see the moment you sign in.
+              </h2>
+              <p className="cts-rlv-sub text-body">
+                Real feed shape, real columns. Every row is one candidate scored on
+                bookmark-to-buy intent, matched to a factory price, and stamped with the
+                date we first saw it.
               </p>
             </div>
-            <div className="cts-bdna-stage" id="scanStage">
-              {/* Left: browser mockup with real illustration inside */}
-              <div className="cts-bdna-browser">
-                <div className="cts-bdna-bar">
-                  <span className="d d1" /> <span className="d d2" /> <span className="d d3" />
-                  <span className="u">xiaohongshu.com/discovery/item/steam-pet-brush</span>
-                </div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/step-spot.jpg" alt="A Xiaohongshu post about a trending steam pet brush" className="cts-bdna-hero-img" />
-              </div>
-              {/* Right: extracted signal cards */}
-              <div className="cts-bdna-out">
-                {SIGNAL_CARDS.map((c, i) => (
-                  <div key={c.label} className="cts-bdna-row" style={{ transitionDelay: `${i * 0.12}s` }}>
-                    <span className="cts-bdna-node" style={{ borderColor: c.hue, color: c.hue }}>
-                      <i className={`ph-fill ${c.ic}`} />
-                    </span>
-                    <div className="cts-bdna-rc">
-                      <span className="cts-bdna-lbl">{c.label}</span>
-                      <span className="text-[14px] font-medium text-ink">{c.value}</span>
-                    </div>
-                  </div>
-                ))}
-                <span className="cts-bdna-caption text-mut">
-                  <i className="ph-fill ph-check-circle" style={{ color: "var(--c-accent)" }} />
-                  From post to listing-ready signal, in seconds.
-                </span>
-              </div>
-              {/* Connecting SVG lines (animated draw on scroll) */}
-              <svg className="cts-bdna-conn" viewBox="0 0 500 400" preserveAspectRatio="none" aria-hidden="true">
-                <path d="M250 80 C 180 80 180 160 110 160" stroke="var(--c-xhs)" />
-                <path d="M250 140 C 180 140 180 200 110 200" stroke="var(--c-xhs)" />
-                <path d="M250 200 C 180 200 180 240 110 240" stroke="var(--c-1688)" />
-                <path d="M250 260 C 180 260 180 280 110 280" stroke="var(--c-taobao)" />
-                <path d="M250 320 C 180 320 180 320 110 320" stroke="var(--c-douyin)" />
-              </svg>
+            <div className="mt-8">
+              <RadarLive />
             </div>
           </div>
         </section>
@@ -441,7 +369,8 @@ export default function Home() {
         .cts-pillars{height:380px}
         .cts-pillar{position:relative;flex:1;display:flex;flex-direction:column}
         .cts-track2{position:relative;flex:1;border-radius:40px;overflow:hidden;background-color:var(--c-surface-2);background-image:linear-gradient(135deg,var(--c-line) 25%,transparent 25.5%,transparent 50%,var(--c-line) 50.5%,var(--c-line) 75%,transparent 75.5%,transparent);background-size:10px 10px}
-        .cts-bar{position:absolute;bottom:0;left:0;right:0;border-radius:40px;background:#b9b4ab;padding:12px;display:flex;align-items:flex-start;justify-content:center;transform-origin:bottom;transform:scaleY(0);opacity:0}
+        /* Bars default to visible so the section is never blank if scroll-reveal doesn't fire (fullpage screenshots, slow hydration, etc). The .lit class only *replays* the entry animation. */
+        .cts-bar{position:absolute;bottom:0;left:0;right:0;border-radius:40px;background:#b9b4ab;padding:12px;display:flex;align-items:flex-start;justify-content:center;transform-origin:bottom;transform:scaleY(1);opacity:1}
         .cts-pillars.lit .cts-bar{animation:cts-grow .9s cubic-bezier(.34,1.4,.44,1) both}
         .cts-bar-lead{background:var(--c-accent);box-shadow:0 30px 60px -25px color-mix(in oklab, var(--c-accent) 55%, transparent)}
         @keyframes cts-grow{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
@@ -454,32 +383,157 @@ export default function Home() {
         @media(max-width:760px){.cts-pillars{height:260px;gap:6px}.cts-val{font-size:14px;height:40px;padding:0 10px}.cts-track2,.cts-bar{border-radius:24px}.cts-lbl{font-size:10.5px}}
         @media (prefers-reduced-motion:reduce){.cts-track{animation:none}.cts-pillars.lit .cts-bar{animation:none}.cts-bar{transform:scaleY(1) !important;opacity:1 !important}}
 
-        /* Signal scan (Brand DNA pattern) */
-        .cts-bdna{padding:clamp(80px,12vh,120px) 0;position:relative}
-        .cts-bdna-top{max-width:680px;margin-bottom:30px}
+        /* Section eyebrow (shared) */
         .cts-bd-eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--c-accent);background:color-mix(in oklab,var(--c-accent) 10%,transparent);border:1px solid color-mix(in oklab,var(--c-accent) 25%,transparent);padding:5px 11px;border-radius:999px;margin-bottom:16px}
-        .cts-bdna-sub{font-size:clamp(1.02rem,1.4vw,1.2rem);color:var(--c-muted);margin-top:14px;max-width:54ch}
-        .cts-bdna-stage{position:relative;display:grid;grid-template-columns:1.02fr .98fr;gap:30px;align-items:center}
-        @media(max-width:920px){.cts-bdna-stage{grid-template-columns:1fr;gap:22px}}
-        .cts-bdna-conn{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
-        @media(max-width:920px){.cts-bdna-conn{display:none}}
-        .cts-bdna-conn path{fill:none;stroke-width:2;stroke-linecap:round;stroke-dasharray:300;stroke-dashoffset:0;transition:stroke-dashoffset 1.3s}
-        .cts-bdna-stage:not(.lit) .cts-bdna-conn path{stroke-dashoffset:300}
-        .cts-bdna-browser{position:relative;z-index:2;background:#fff;border:1px solid var(--c-line);border-radius:18px;box-shadow:0 26px 60px -26px rgba(14,21,36,.28);overflow:hidden}
-        .cts-bdna-bar{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid var(--c-line);background:var(--c-surface-2)}
-        .cts-bdna-bar .d{width:10px;height:10px;border-radius:50%}
-        .cts-bdna-bar .d1{background:#ff5f57}.cts-bdna-bar .d2{background:var(--c-accent)}.cts-bdna-bar .d3{background:#22c55e}
-        .cts-bdna-bar .u{flex:1;display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--c-line);border-radius:999px;padding:6px 12px;font-family:var(--font-mono);font-size:.72rem;color:var(--c-muted)}
-        .cts-bdna-bar .u i{color:var(--c-accent);font-size:.85rem}
-        .cts-bdna-hero-img{position:relative;width:100%;height:auto;display:block;aspect-ratio:1/0.94;object-fit:cover}
-        .cts-bdna-out{position:relative;z-index:2;display:flex;flex-direction:column;gap:13px}
-        .cts-bdna-row{display:flex;align-items:center;gap:14px;opacity:1;transform:none;transition:opacity .5s,transform .5s cubic-bezier(.22,1,.36,1)}
-        .cts-bdna-stage:not(.lit) .cts-bdna-row{opacity:0;transform:translateX(14px)}
-        .cts-bdna-node{flex-shrink:0;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1.5px solid var(--c-accent);color:var(--c-accent);font-size:1rem;box-shadow:0 4px 12px color-mix(in oklab,var(--c-accent) 18%,transparent)}
-        .cts-bdna-rc{flex:1;min-width:0;background:#fff;border:1px solid var(--c-line);border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(14,21,36,.04)}
-        .cts-bdna-lbl{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-faint);display:block;margin-bottom:8px}
-        .cts-bdna-caption{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:.72rem;color:var(--c-muted);margin-top:26px}
-        .cts-bdna-caption i{color:var(--c-accent)}
+
+        /* Process stepper */
+        .cts-rlv-sec{padding:clamp(80px,12vh,120px) 0;position:relative;background:var(--c-surface);border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line)}
+        .cts-rlv-top{max-width:680px;margin-bottom:30px}
+        .cts-rlv-sub{font-size:clamp(1.02rem,1.4vw,1.2rem);color:var(--c-muted);margin-top:14px;max-width:56ch}
+        .ps-wrap{display:flex;flex-direction:column;gap:20px}
+        .ps-rail{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+        .ps-tab{position:relative;display:inline-flex;align-items:center;gap:9px;padding:11px 20px 11px 15px;border-radius:999px;background:#fff;border:1.5px solid var(--c-line);color:var(--c-muted);font-family:var(--font-geist-sans);font-weight:600;font-size:.9rem;cursor:pointer;transition:transform .22s cubic-bezier(.34,1.56,.64,1),border-color .22s,color .22s,box-shadow .22s;overflow:hidden}
+        .ps-tab:hover{transform:translateY(-2px);border-color:var(--c-line-strong);color:var(--c-ink);box-shadow:0 6px 18px rgba(14,21,36,.08)}
+        .ps-tab.on{background:var(--c-ink);color:#fff;border-color:var(--c-ink)}
+        .ps-num{font-family:var(--font-mono);font-size:.68rem;font-weight:700;letter-spacing:.06em;padding:3px 7px;border-radius:6px;background:color-mix(in oklab,var(--c-accent) 12%,transparent);color:var(--c-accent);flex-shrink:0}
+        .ps-tab.on .ps-num{background:var(--c-accent);color:#fff}
+        .ps-lbl{white-space:nowrap}
+        .ps-bar{position:absolute;left:0;bottom:0;height:2.5px;width:0;background:var(--c-accent)}
+        .ps-bar.run{animation:ps-bar-fill 5000ms linear forwards}
+        @keyframes ps-bar-fill{from{width:0}to{width:100%}}
+        .ps-panel{display:grid;grid-template-columns:.9fr 1.1fr;gap:34px;align-items:center;margin-top:12px}
+        @media(max-width:920px){.ps-panel{grid-template-columns:1fr;gap:22px}}
+        .ps-copy{max-width:44ch}
+        .ps-eyebrow{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-accent);font-weight:700}
+        .ps-title{font-family:var(--font-geist-sans);font-weight:800;font-size:clamp(1.6rem,3vw,2.3rem);letter-spacing:-.02em;line-height:1.05;color:var(--c-ink);margin-top:10px}
+        .ps-body{font-size:15px;color:var(--c-muted);line-height:1.6;margin-top:14px}
+        .ps-stage{position:relative;min-height:360px}
+        .ps-view{position:absolute;inset:0;display:none;opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s cubic-bezier(.22,1,.36,1)}
+        .ps-view.on{display:flex;opacity:1;transform:none}
+        @media(max-width:920px){.ps-stage{min-height:340px}}
+
+        /* Shared mockup chrome */
+        .mock{position:relative;flex:1;background:#fff;border:1px solid var(--c-line);border-radius:18px;box-shadow:0 26px 60px -26px rgba(14,21,36,.24);padding:20px;display:flex;flex-direction:column;gap:14px}
+        .mock-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--c-line)}
+        .mock-title{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-geist-sans);font-weight:700;font-size:.92rem;color:var(--c-ink)}
+        .mock-title i{color:var(--c-accent);font-size:1.05rem}
+        .mock-pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--c-muted);background:var(--c-surface-2);border:1px solid var(--c-line);padding:4px 10px;border-radius:999px}
+        .mock-pill i{font-size:.78rem;color:var(--c-accent)}
+        .mock-pill-live{color:var(--c-accent);background:color-mix(in oklab,var(--c-accent) 10%,transparent);border-color:color-mix(in oklab,var(--c-accent) 25%,transparent)}
+        .mock-pill-win{color:var(--c-1688);background:rgba(240,140,0,.1);border-color:rgba(240,140,0,.25)}
+        .mock-dot{width:6px;height:6px;border-radius:50%;background:var(--c-accent);animation:rtr-blink 1.3s infinite}
+        .mock-caption{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:.68rem;color:var(--c-muted);padding-top:10px;border-top:1px solid var(--c-line)}
+        .mock-caption i{color:var(--c-accent);font-size:.85rem}
+
+        /* Radar mockup rows (Spot step) */
+        .mock-radar .mock-rows{display:flex;flex-direction:column;gap:10px}
+        .mr{display:grid;grid-template-columns:32px 1fr 130px 66px 40px;gap:11px;align-items:center;padding:9px 12px;border-radius:12px;background:var(--c-surface-2);border:1px solid var(--c-line);transition:background .25s}
+        .mr:hover{background:#fff}
+        .mr-dim{opacity:.68}
+        .mr-plat{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;color:#fff;font-weight:700;font-size:13px}
+        .mr-name{font-family:var(--font-geist-sans);font-weight:600;font-size:.9rem;color:var(--c-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .mr-intent{display:flex;align-items:center;gap:8px}
+        .mr-bar-track{position:relative;flex:1;height:6px;border-radius:999px;background:var(--c-line);overflow:hidden;min-width:0}
+        .mr-bar{display:block;height:100%;border-radius:999px;background:var(--c-xhs);transition:width 1s cubic-bezier(.22,1,.36,1);width:0}
+        .mr-intent-v{font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--c-ink);flex-shrink:0}
+        .mr-stage{font-family:var(--font-mono);font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--c-surface);border:1px solid var(--c-line);color:var(--c-muted);text-align:center}
+        .mr-rising{background:color-mix(in oklab,var(--c-accent) 12%,transparent);border-color:color-mix(in oklab,var(--c-accent) 24%,transparent);color:var(--c-accent)}
+        .mr-first{font-family:var(--font-mono);font-size:.72rem;color:var(--c-muted);text-align:right}
+
+        /* 1688 supplier match mockup */
+        .mock-match .mm-search{display:flex;align-items:center;gap:9px;padding:10px 14px;background:var(--c-surface-2);border:1px solid var(--c-line);border-radius:999px;font-family:var(--font-mono);font-size:.78rem;color:var(--c-ink)}
+        .mock-match .mm-search i{color:var(--c-1688)}
+        .mm-search-ct{margin-left:auto;font-family:var(--font-mono);font-size:.65rem;color:var(--c-muted);padding:3px 9px;background:#fff;border-radius:999px;border:1px solid var(--c-line)}
+        .mm-rows{display:flex;flex-direction:column;gap:10px}
+        .mm-row{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--c-surface-2);border:1px solid var(--c-line);opacity:0;transform:translateX(-8px);transition:opacity .5s ease,transform .5s cubic-bezier(.22,1,.36,1)}
+        .ps-view.on .mm-row{opacity:1;transform:none}
+        .mm-row.mm-top{background:#fff;border-color:color-mix(in oklab,var(--c-1688) 40%,transparent);box-shadow:0 6px 18px -8px rgba(240,140,0,.28)}
+        .mm-thumb{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:1.15rem;flex-shrink:0}
+        .mm-body{display:flex;flex-direction:column;gap:3px;min-width:0}
+        .mm-name{font-family:var(--font-geist-sans);font-weight:600;font-size:.86rem;color:var(--c-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .mm-meta{font-family:var(--font-mono);font-size:.66rem;color:var(--c-muted);display:flex;align-items:center;gap:6px}
+        .mm-meta i{color:var(--c-1688);font-size:.72rem}
+        .mm-dot{opacity:.5}
+        .mm-price{font-family:var(--font-mono);font-weight:700;font-size:1rem;color:var(--c-ink);white-space:nowrap}
+        .mm-row.mm-top .mm-price{color:var(--c-1688)}
+
+        /* Watchlist mockup */
+        .mock-list .wl-hero{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:14px;background:linear-gradient(135deg,color-mix(in oklab,var(--c-xhs) 8%,transparent),transparent);border:1px solid color-mix(in oklab,var(--c-xhs) 20%,transparent);border-radius:14px}
+        .wl-thumb{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:1.55rem}
+        .wl-body{display:flex;flex-direction:column;gap:2px}
+        .wl-name{font-family:var(--font-geist-sans);font-weight:700;font-size:.98rem;color:var(--c-ink)}
+        .wl-sub{font-family:var(--font-mono);font-size:.68rem;color:var(--c-muted)}
+        .wl-delta{display:flex;flex-direction:column;align-items:flex-end}
+        .wl-delta-num{font-family:var(--font-geist-sans);font-weight:800;font-size:1.55rem;line-height:1;color:var(--c-accent);letter-spacing:-.02em;transition:opacity .6s ease .3s}
+        .wl-delta-lbl{font-family:var(--font-mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--c-muted);margin-top:2px}
+        .wl-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+        .wl-fact{display:flex;flex-direction:column;gap:3px;padding:11px 13px;border-radius:11px;background:var(--c-surface-2);border:1px solid var(--c-line)}
+        .wl-fact-lbl{font-family:var(--font-mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--c-muted)}
+        .wl-fact-val{font-family:var(--font-mono);font-weight:700;font-size:1rem;color:var(--c-ink)}
+        .wl-fact-hi{color:var(--c-accent)}
+        .wl-cta{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-radius:12px;background:var(--c-ink);color:#fff}
+        .wl-cta-lbl{font-size:.85rem;font-weight:500}
+        .wl-cta-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-geist-sans);font-weight:600;font-size:.82rem;color:#fff;background:transparent;border:none;cursor:default;padding:0}
+        .wl-cta-btn i{font-size:.9rem}
+
+        /* Radar Live: full-width live feed */
+        .rlv-wrap{display:flex;flex-direction:column;gap:16px}
+        .rlv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+        @media(max-width:640px){.rlv-stats{grid-template-columns:repeat(2,1fr)}}
+        .rlv-stat{display:flex;flex-direction:column;gap:4px;padding:14px 16px;background:#fff;border:1px solid var(--c-line);border-radius:14px}
+        .rlv-stat-lbl{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted)}
+        .rlv-stat-pulse{width:6px;height:6px;border-radius:50%;animation:rtr-blink 1.5s infinite}
+        .rlv-stat-val{font-family:var(--font-geist-sans);font-weight:800;font-size:1.55rem;line-height:1;letter-spacing:-.02em}
+        .rlv-panel{position:relative;background:#fff;border:1px solid var(--c-line);border-radius:18px;box-shadow:0 26px 60px -30px rgba(14,21,36,.28);overflow:hidden}
+        .rlv-bar{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--c-line);background:var(--c-surface-2)}
+        .rlv-bar-title{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-geist-sans);font-weight:700;font-size:.92rem;color:var(--c-ink)}
+        .rlv-bar-title i{color:var(--c-accent)}
+        .rlv-bar-right{display:inline-flex;align-items:center;gap:10px}
+        .rlv-live{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c-accent);background:color-mix(in oklab,var(--c-accent) 10%,transparent);border:1px solid color-mix(in oklab,var(--c-accent) 25%,transparent);padding:4px 10px;border-radius:999px}
+        .rlv-live-dot{width:6px;height:6px;border-radius:50%;background:var(--c-accent);animation:rtr-blink 1.3s infinite}
+        .rlv-tick{font-family:var(--font-mono);font-size:.6rem;color:var(--c-accent);opacity:0;animation:rlv-tick 2.4s ease-out}
+        @keyframes rlv-tick{0%{opacity:0;transform:translateY(4px)}20%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(0)}}
+        .rlv-thead{display:grid;grid-template-columns:96px minmax(0,1.4fr) minmax(0,1.2fr) 68px 88px 76px;gap:14px;padding:10px 18px;font-family:var(--font-mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);background:var(--c-surface-2);border-bottom:1px solid var(--c-line)}
+        @media(max-width:760px){.rlv-thead{display:none}}
+        .rlv-rows{display:flex;flex-direction:column}
+        .rlv-row{display:grid;grid-template-columns:96px minmax(0,1.4fr) minmax(0,1.2fr) 68px 88px 76px;gap:14px;padding:14px 18px;border-bottom:1px solid var(--c-line);align-items:center;transition:background .25s}
+        .rlv-row:last-child{border-bottom:none}
+        .rlv-row:hover{background:var(--c-surface-2)}
+        .rlv-row-new{animation:rlv-in .5s cubic-bezier(.22,1,.36,1);background:color-mix(in oklab,var(--c-accent) 5%,transparent)}
+        @keyframes rlv-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+        @media(max-width:760px){
+          .rlv-row{grid-template-columns:64px minmax(0,1fr) 76px;grid-template-areas:"plat name intent-v" "plat niche stage" "intent intent intent";gap:6px 12px;padding:12px 14px}
+          .rlv-col-plat{grid-area:plat;justify-self:start}
+          .rlv-col-name .rlv-name{grid-area:name}
+          .rlv-col-name .rlv-niche{grid-area:niche;font-size:.66rem}
+          .rlv-col-intent{grid-area:intent}
+          .rlv-col-spread,.rlv-col-first{display:none}
+          .rlv-col-stage{grid-area:stage;justify-self:end}
+        }
+        .rlv-col{display:flex;align-items:center;gap:8px;min-width:0;font-size:.86rem;color:var(--c-ink)}
+        .rlv-col-plat{gap:10px}
+        .rlv-plat{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+        .rlv-plat-name{font-family:var(--font-mono);font-size:.66rem;font-weight:700;color:var(--c-muted);letter-spacing:.04em}
+        @media(max-width:760px){.rlv-plat-name{display:none}}
+        .rlv-col-name{flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+        .rlv-name{font-family:var(--font-geist-sans);font-weight:600;font-size:.9rem;color:var(--c-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+        .rlv-niche{font-family:var(--font-mono);font-size:.62rem;color:var(--c-muted);letter-spacing:.02em}
+        .rlv-col-intent{gap:9px}
+        .rlv-bar-track{position:relative;flex:1;height:6px;border-radius:999px;background:var(--c-line);overflow:hidden;min-width:0}
+        .rlv-bar-fill{display:block;height:100%;border-radius:999px;transition:width 1s cubic-bezier(.22,1,.36,1)}
+        .rlv-intent-v{font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--c-ink);flex-shrink:0;min-width:34px;text-align:right}
+        .rlv-mono{font-family:var(--font-mono);font-size:.8rem;font-weight:700;color:var(--c-ink)}
+        .rlv-col-first{color:var(--c-muted);font-weight:500}
+        .rlv-pill{font-family:var(--font-mono);font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--c-surface);border:1px solid var(--c-line);color:var(--c-muted);text-align:center}
+        .rlv-pill-rising{background:color-mix(in oklab,var(--c-accent) 12%,transparent);border-color:color-mix(in oklab,var(--c-accent) 24%,transparent);color:var(--c-accent)}
+        .rlv-pill-warm{background:rgba(240,140,0,.12);border-color:rgba(240,140,0,.24);color:#a36b00}
+        .rlv-pill-watch{background:var(--c-surface-2)}
+        .rlv-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-top:1px solid var(--c-line);background:var(--c-surface-2)}
+        .rlv-foot-lbl{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:.68rem;color:var(--c-muted)}
+        .rlv-foot-lbl i{color:var(--c-accent);font-size:.82rem}
+        .rlv-foot-cta{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-geist-sans);font-weight:600;font-size:.8rem;color:var(--c-ink)}
+        .rlv-foot-cta i{color:var(--c-accent);font-size:.85rem}
+        @media(prefers-reduced-motion:reduce){.rlv-row-new{animation:none;background:transparent}.rlv-bar-fill,.mr-bar,.wl-delta-num{transition:none!important}.rlv-tick,.rlv-live-dot,.mock-dot,.rlv-stat-pulse{animation:none!important}}
 
         /* Niches (Built for any business pattern) */
         .cts-niches{padding:clamp(80px,12vh,120px) 0;background:var(--c-surface);border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line)}
@@ -613,11 +667,8 @@ export default function Home() {
           noscript override — React itself needs JS to render at all,
           same as the rest of this app.) */}
       <noscript><style>{`
-        .cts-bdna-stage, .cts-nv2-block, .cts-pillars { opacity:1 !important; transform:none !important; }
-        .cts-bdna-row { opacity:1 !important; transform:none !important; }
+        .cts-nv2-block, .cts-pillars { opacity:1 !important; transform:none !important; }
         .cts-nv2-pill { opacity:1 !important; transform:none !important; }
-        .cts-bdna-conn path { stroke-dashoffset:0 !important; }
-        .cts-bar { transform:scaleY(1) !important; opacity:1 !important; }
       `}</style></noscript>
 
       {/* Scroll-reveal: add .lit class to stages when they enter viewport.
@@ -639,7 +690,7 @@ export default function Home() {
             io.observe(el);
           }
           function scan(){
-            document.querySelectorAll('.cts-bdna-stage, .cts-nv2-block, .cts-pillars').forEach(reveal);
+            document.querySelectorAll('.cts-nv2-block, .cts-pillars').forEach(reveal);
           }
           scan();
           var tries = 0;
