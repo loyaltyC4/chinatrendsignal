@@ -5,6 +5,8 @@ import Faq from "@/components/faq";
 import ReadTheRoom from "@/components/read-the-room";
 import ProcessStepper from "@/components/process-stepper";
 import RadarLive from "@/components/radar-live";
+import HeroAnim from "@/components/hero-anim";
+import PricingToggle from "@/components/pricing-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -82,15 +84,6 @@ const PILLARS = [
   { val: "6d", top: "First seen", bot: "logged in the index", h: "44%", lead: false },
 ];
 
-const TIERS = [
-  { name: "Scout", price: "A$0", per: "forever", line: "See what we see, a week late.",
-    feats: ["Weekly trend email", "Top 10, 7-day delayed", "5 lookups a month"], featured: false },
-  { name: "Hunter", price: "A$59", per: "/month", line: "The daily edge for active sellers.",
-    feats: ["Daily radar, every signal", "First-detected date on each", "1688 supplier match", "10-product watchlist"], featured: true },
-  { name: "Operator", price: "A$129", per: "/month", line: "For full-time operators.",
-    feats: ["Everything in Hunter, uncapped", "Unlimited watchlist", "Supplier price history", "CSV export", "Extra seats +A$39"], featured: false },
-];
-
 function LogoSet() {
   return LOGOS.map((l) => (
     <div key={l.name} className="cts-logo" title={l.name}>
@@ -114,26 +107,8 @@ export default function Home() {
     <div className="min-h-[100dvh] bg-canvas">
       <MarketingNav />
       <main id="main">
-        {/* 1. HERO */}
-        <section className="spectrum-wash">
-          <div className="mx-auto max-w-[1160px] px-5 pt-20 pb-16 text-center sm:px-8 lg:pt-24">
-            <h1 className="display-xl mx-auto max-w-[17ch] text-ink">
-              See it in China <span className="spectrum-text">before</span> the window shuts.
-            </h1>
-            <p className="mx-auto mt-5 max-w-[46ch] text-[16.5px] leading-relaxed text-body">
-              We match what&apos;s trending on Douyin and Xiaohongshu to a factory price on 1688,
-              dated the day we saw it.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/login" className="rounded-ctl bg-accentstrong px-5 py-2.5 text-[14px] font-medium text-onaccent transition-opacity hover:opacity-90 active:translate-y-px">
-                Get started
-              </Link>
-              <Link href="/pricing" className="rounded-ctl border border-linestrong px-5 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-surface2 active:translate-y-px">
-                See pricing
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* 1. HERO — animated (21st.dev hero-1 chrome + rotating emphasis word) */}
+        <HeroAnim />
 
         {/* 1b. TRUST STRIP — colour logo marquee, its own section below the hero */}
         <section className="border-b border-line bg-surface2/30">
@@ -284,45 +259,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 7. PRICING */}
+        {/* 7. PRICING — interactive toggle (21st.dev pricing-4 pattern, CTS tokens) */}
         <section id="pricing" className="mx-auto max-w-[1160px] px-5 py-20 sm:px-8">
-          <h2 className="display-lg text-ink">One winning product pays for years of this.</h2>
-          <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed text-body">
-            Plain AUD, GST included. Credits never expire and cancelling takes one click.
-          </p>
-          <div className="mt-10 grid gap-px overflow-hidden rounded-card border border-line bg-line md:grid-cols-3">
-            {TIERS.map((t) => (
-              <div key={t.name} className={`flex flex-col p-7 ${t.featured ? "bg-surface2" : "bg-surface"}`}>
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-[15px] font-medium text-ink">{t.name}</span>
-                  {t.featured && (
-                    <span className="rounded-chip bg-accentweak px-1.5 py-0.5 font-mono text-[9.5px] text-accent">most popular</span>
-                  )}
-                </div>
-                <p className="mt-5 flex items-baseline gap-1.5">
-                  <span data-numeric className="font-mono text-[34px] font-medium tracking-[-.035em] text-ink">{t.price}</span>
-                  <span className="font-mono text-[12.5px] text-mut">{t.per}</span>
-                </p>
-                <p className="mt-2 text-[13.5px] text-mut">{t.line}</p>
-                <ul className="mt-6 flex-1 space-y-2.5 border-t border-line pt-6">
-                  {t.feats.map((f) => (
-                    <li key={f} className="flex gap-2.5 text-[13.5px] leading-snug text-body">
-                      <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-accent" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/login"
-                  className={`mt-7 rounded-ctl px-4 py-2.5 text-center text-[13.5px] font-medium transition-opacity hover:opacity-90 active:translate-y-px ${
-                    t.featured ? "bg-accentstrong text-onaccent" : "border border-linestrong text-ink"
-                  }`}
-                >
-                  Get started
-                </Link>
-              </div>
-            ))}
-          </div>
+          <PricingToggle />
         </section>
 
         {/* 8. FAQ */}
