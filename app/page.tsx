@@ -8,6 +8,7 @@ import RadarLive from "@/components/radar-live";
 import HeroAnim from "@/components/hero-anim";
 import PricingToggle from "@/components/pricing-toggle";
 import NicheBento from "@/components/niche-bento";
+import SourceCards from "@/components/source-cards";
 
 export const dynamic = "force-dynamic";
 
@@ -45,14 +46,6 @@ const LOGOS: { name: string; url?: string; glyph?: string; hue?: string }[] = [
   { name: "Zhihu", url: `https://cdn.brandfetch.io/idm5wK3FJf/w/800/h/375/theme/dark/logo.png?${BF}` },
   { name: "Instagram", url: `https://cdn.brandfetch.io/ido5G85nya/theme/dark/symbol.svg?${BF}` },
   { name: "YouTube", url: `https://cdn.brandfetch.io/idVfYwcuQz/theme/dark/logo.svg?${BF}` },
-];
-
-// "Stop guessing. Read the room." — credibility stats (Mint Studio intel pattern)
-const CRED_STATS = [
-  { num: "4", label: "platforms", color: "var(--c-accent)" },
-  { num: "1", label: "index", color: "var(--c-xhs)" },
-  { num: "25-40×", label: "gross spread", color: "var(--c-1688)" },
-  { num: "7d", label: "free tier delay", color: "var(--c-taobao)" },
 ];
 
 const PILLARS = [
@@ -177,28 +170,8 @@ export default function Home() {
         {/* 6. STOP GUESSING. READ THE ROOM. — intelligence section (Mint Studio "intel" pattern) */}
         <section className="cts-intel" id="intel">
           <div className="mx-auto max-w-[1160px] px-5 sm:px-8">
-            {/* Credibility stats row */}
-            <div className="cts-cred">
-              <span className="label text-mut">Read from the source</span>
-              <h3 className="cts-cred-line text-ink">Not just trends. <span className="spectrum-text">It&apos;s signal intelligence.</span></h3>
-              <div className="cts-cred-stats">
-                {CRED_STATS.map((s, i) => (
-                  <div key={s.label} className="cts-cstat">
-                    <b style={{ color: s.color }}>{s.num}</b>
-                    <span>{s.label}</span>
-                    {i < CRED_STATS.length - 1 && <div className="cts-cdiv" />}
-                  </div>
-                ))}
-              </div>
-              <div className="cts-cred-wire"><span className="cts-spark" /></div>
-              <div className="cts-cred-logos">
-                <span className="text-[10px] font-mono uppercase tracking-[0.1em] text-faint opacity-70">Read from</span>
-                <span className="cts-glyph" style={{ background: "var(--c-douyin)" }}>抖</span>
-                <span className="cts-glyph" style={{ background: "var(--c-xhs)" }}>红</span>
-                <span className="cts-glyph" style={{ background: "var(--c-1688)" }}>16</span>
-                <span className="cts-glyph" style={{ background: "var(--c-taobao)" }}>淘</span>
-              </div>
-            </div>
+            {/* "Read from the source" — four platform cards, animated */}
+            <SourceCards />
             {/* Headline + interactive console */}
             <div className="cts-intel-head">
               <h2 className="display-lg text-ink">Stop guessing.<br />Read the room.</h2>
@@ -426,24 +399,10 @@ export default function Home() {
         /* Niches section wrapper (bento content lives in NicheBento component) */
         .cts-niches{padding:clamp(80px,12vh,120px) 0;background:var(--c-surface);border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line)}
 
-        /* Intelligence (Stop guessing. Read the room. pattern) */
+        /* Intelligence section (SourceCards + ReadTheRoom) */
         .cts-intel{padding:clamp(60px,8vh,90px) 0 clamp(60px,8vh,90px)}
-        .cts-cred{max-width:940px;margin:0 auto 36px;display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center;padding-bottom:34px;border-bottom:1px solid var(--c-line)}
-        .cts-cred-line{font-family:var(--font-geist-sans);font-weight:700;font-size:clamp(1.3rem,2.6vw,2rem);letter-spacing:-.02em;line-height:1.05;color:var(--c-ink)}
-        .cts-cred-stats{display:flex;align-items:center;justify-content:center;gap:clamp(14px,3vw,38px);flex-wrap:wrap}
-        .cts-cstat{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:92px}
-        .cts-cstat b{font-family:var(--font-geist-sans);font-weight:800;font-size:clamp(2rem,3.6vw,3rem);line-height:1;letter-spacing:-.025em}
-        .cts-cstat span{font-family:var(--font-mono);font-size:.61rem;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted)}
-        .cts-cdiv{width:1px;height:38px;background:var(--c-line-strong);flex-shrink:0}
-        .cts-cred-wire{position:relative;height:2px;width:min(560px,82%);border-radius:2px;background:linear-gradient(90deg,transparent,var(--c-line-strong) 28%,var(--c-line-strong) 72%,transparent);overflow:hidden}
-        .cts-spark{position:absolute;top:-1px;bottom:-1px;left:-120px;width:120px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--c-accent),var(--c-xhs),var(--c-1688),var(--c-taobao),transparent);box-shadow:0 0 10px color-mix(in oklab,var(--c-accent) 45%,transparent);animation:cts-spark-flow 7s cubic-bezier(.65,0,.35,1) infinite}
-        @keyframes cts-spark-flow{from{left:-120px}to{left:100%}}
-        .cts-cred-logos{display:flex;gap:clamp(16px,3vw,30px);align-items:center;flex-wrap:wrap;justify-content:center}
-        .cts-cred-logos .cts-glyph{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;opacity:.5;transition:opacity .3s}
-        .cts-cred-logos:hover .cts-glyph{opacity:.8}
-        .cts-intel-head{max-width:680px;margin-bottom:24px;display:flex;flex-direction:column;gap:13px}
+        .cts-intel-head{max-width:680px;margin:36px 0 24px;display:flex;flex-direction:column;gap:13px}
         .cts-intel-head h2{font-weight:800;font-size:clamp(2.4rem,6vw,4.6rem);letter-spacing:-.035em;line-height:.94}
-        @media (prefers-reduced-motion:reduce){.cts-spark{animation:none}}
 
         /* Read the room: interactive console (Mint Studio "room" pattern) */
         .rtr-console{position:relative;display:grid;grid-template-columns:280px 1fr;gap:22px;background:var(--c-ink);border-radius:22px;padding:26px;overflow:hidden;margin-top:8px}
