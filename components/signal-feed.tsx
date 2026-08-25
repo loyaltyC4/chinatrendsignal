@@ -17,6 +17,10 @@ import { platformStyle } from "@/lib/platform-style";
  *    like as an interface rather than as a claim in marketing copy.
  *  - Stripe/Attio: hairline separators, no card chrome, tabular figures, numbers
  *    right-aligned so columns actually compare vertically.
+ *
+ * The empty state upgraded from a centered text block to a small "empty radar"
+ * SVG + a real next action, so a first-time viewer with no ingest sees something
+ * that reads like a state, not a rendering bug.
  */
 
 export type Signal = {
@@ -25,8 +29,8 @@ export type Signal = {
   zh: string;
   niche: string;
   stage: "Rising" | "Peaking" | "Fading";
-  velocityPct: number; // week-over-week growth %
-  intent: number;      // 0-100 saves-to-likes intent score
+  velocityPct: number;
+  intent: number;
   wholesaleCny: number;
   retailAud: number;
   sources: string[];
@@ -70,8 +74,6 @@ function Spark({ points }: { points: number[] }) {
 }
 
 function Provenance({ source, estimated }: { source: string; estimated?: boolean }) {
-  // Platform badges carry the coded hue; the "est." marker stays neutral so it
-  // reads as a caveat rather than a source.
   const p = platformStyle(source);
   const style = estimated
     ? undefined
@@ -92,6 +94,71 @@ function Provenance({ source, estimated }: { source: string; estimated?: boolean
 const GRID =
   "grid grid-cols-[minmax(0,2.1fr)_.7fr_.9fr_.65fr_.75fr_.6fr] items-center gap-3 max-lg:grid-cols-[minmax(0,2fr)_.7fr_.9fr]";
 
+/* ── Empty state (upgraded from centered-text-only to illustration + CTA) ── */
+
+function EmptyRadar() {
+  return (
+    <div className="rf-empty">
+      <div className="rf-empty-scope" aria-hidden="true">
+        <svg viewBox="0 0 140 140" width="140" height="140">
+          <defs>
+            <radialGradient id="rf-glow" cx="50%" cy="50%">
+              <stop offset="0%" stopColor="var(--c-accent)" stopOpacity="0.14" />
+              <stop offset="100%" stopColor="var(--c-accent)" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <circle cx="70" cy="70" r="66" fill="url(#rf-glow)" />
+          {[26, 44, 62].map((r) => (
+            <circle
+              key={r}
+              cx="70"
+              cy="70"
+              r={r}
+              fill="none"
+              stroke="var(--c-line)"
+              strokeWidth="1"
+              opacity="0.7"
+            />
+          ))}
+          <line x1="4" y1="70" x2="136" y2="70" stroke="var(--c-line)" strokeWidth="0.5" />
+          <line x1="70" y1="4" x2="70" y2="136" stroke="var(--c-line)" strokeWidth="0.5" />
+          {/* Center hub — quiet, no signals */}
+          <circle cx="70" cy="70" r="4" fill="var(--c-accent)" />
+          <circle cx="70" cy="70" r="8" fill="none" stroke="var(--c-accent)" strokeWidth="1" opacity="0.4" />
+          {/* Static sweep — no rotation for the empty state */}
+          <line x1="70" y1="70" x2="70" y2="8" stroke="var(--c-line-strong)" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
+        </svg>
+      </div>
+      <p className="rf-empty-title">Nothing on the radar yet.</p>
+      <p className="rf-empty-body">
+        Signals appear here after the first nightly pull completes. If a filter is
+        active, try clearing it — some niches move slower than others.
+      </p>
+      <div className="rf-empty-ctas">
+        <Link href="/radar" className="rf-empty-cta rf-empty-cta-primary">
+          Clear filters <i className="ph ph-arrow-right" />
+        </Link>
+        <Link href="/analysis" className="rf-empty-cta rf-empty-cta-ghost">
+          Try the worked example
+        </Link>
+      </div>
+      <style>{`
+        .rf-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:36px 24px 40px;border-radius:16px;border:1px solid var(--c-line);background:var(--c-surface)}
+        .rf-empty-scope{margin-bottom:14px}
+        .rf-empty-title{font-family:var(--font-geist-sans);font-weight:700;font-size:1.02rem;color:var(--c-ink)}
+        .rf-empty-body{margin-top:6px;font-size:.86rem;line-height:1.55;color:var(--c-muted);max-width:44ch}
+        .rf-empty-ctas{margin-top:18px;display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+        .rf-empty-cta{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:999px;font-family:var(--font-geist-sans);font-weight:600;font-size:.82rem;text-decoration:none;transition:transform .22s cubic-bezier(.34,1.56,.64,1),background .22s,border-color .22s}
+        .rf-empty-cta i{font-size:.85em}
+        .rf-empty-cta-primary{background:var(--c-accent);color:#fff;box-shadow:0 8px 22px -10px color-mix(in oklab,var(--c-accent) 55%,transparent)}
+        .rf-empty-cta-primary:hover{transform:translateY(-2px);box-shadow:0 12px 28px -10px color-mix(in oklab,var(--c-accent) 70%,transparent)}
+        .rf-empty-cta-ghost{background:transparent;color:var(--c-ink);border:1.5px solid var(--c-line-strong)}
+        .rf-empty-cta-ghost:hover{transform:translateY(-2px);background:var(--c-surface-2);border-color:var(--c-ink)}
+      `}</style>
+    </div>
+  );
+}
+
 export default function SignalFeed({
   signals,
   watched = [],
@@ -102,15 +169,7 @@ export default function SignalFeed({
 }) {
   const saved = new Set(watched);
   if (!signals.length) {
-    return (
-      <div className="rounded-card border border-line bg-surface px-6 py-14 text-center">
-        <p className="text-sm font-medium text-ink">No signals in this view</p>
-        <p className="mx-auto mt-1.5 max-w-[44ch] text-[13px] leading-relaxed text-mut">
-          Signals appear here once a nightly pull completes. Nothing is shown until there
-          is something real to show.
-        </p>
-      </div>
-    );
+    return <EmptyRadar />;
   }
 
   return (
@@ -136,8 +195,6 @@ function SignalRow({ s, watching }: { s: Signal; watching: boolean }) {
   const hasPrice = s.wholesaleCny > 0 && s.retailAud > 0;
   const spread = hasPrice ? s.retailAud / (s.wholesaleCny * 0.213) : null;
   const stageColor = STAGE[s.stage] ?? STAGE.Rising;
-  // Linked by id so the analysis page reads the row from the database rather than
-  // trusting (or padding out) numbers passed through the query string.
   const href = `/analysis?id=${encodeURIComponent(s.id)}`;
 
   return (

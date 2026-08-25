@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import SignalFeed from "@/components/signal-feed";
-import { Shell, PageHead, SourceBadge, Stat } from "@/components/page-shell";
+import { Shell, Stat } from "@/components/page-shell";
+import RadarHero from "@/components/radar-hero";
+import NicheFilters from "@/components/niche-filters";
 import { getRadar } from "@/lib/signals";
 import { requireUser } from "@/lib/auth";
 import { getWatchedIds, watchlistCap, type Profile } from "@/lib/dashboard";
@@ -8,6 +10,24 @@ import { supabaseAdmin, isServiceRoleConfigured } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Radar" };
 export const dynamic = "force-dynamic";
+
+/*
+ * Radar page — warm hero + polished filters + skeleton loading + upgraded empty.
+ *
+ * Structural changes from the previous version:
+ *  1. Flat `PageHead` + `SourceBadge` replaced with `RadarHero` — a gradient
+ *     band carrying the freshness pill, gradient headline, sub, two shortcut
+ *     CTAs, and an animated radar-scope SVG on the right.
+ *  2. Mono-font niche chips replaced with `NicheFilters` — per-niche icon
+ *     tiles + counts, hover lift, active fill.
+ *  3. Sample-data warning demoted from a full-width red card to a subtle
+ *     one-line note; the hero already flags "Sample data" up top so it
+ *     doesn't need to shout twice.
+ *  4. Empty state lives inside `SignalFeed` and now renders an actual
+ *     empty-radar illustration with a Clear filters / Worked example
+ *     next action. Skeleton rows during the initial server render live in
+ *     the sibling `loading.tsx`.
+ */
 
 function ago(iso: string | null) {
   if (!iso) return "never";
@@ -41,6 +61,10 @@ export default async function RadarPage({
   const canExport = plan === "operator" || role === "admin";
 
   const niches = Array.from(new Set(rows.map((r) => r.niche).filter(Boolean))).sort();
+  const counts: Record<string, number> = {};
+  for (const r of rows) {
+    if (r.niche) counts[r.niche] = (counts[r.niche] ?? 0) + 1;
+  }
   const visible = niche ? rows.filter((r) => r.niche === niche) : rows;
 
   const rising = visible.filter((r) => r.stage === "Rising").length;
@@ -55,63 +79,45 @@ export default async function RadarPage({
 
   return (
     <Shell active="Radar">
-      <PageHead
-        title="Radar"
-        sub="Products moving on Chinese platforms, ranked by momentum against margin. Every row carries the date we first recorded it."
-        aside={<SourceBadge live={source === "live"} when={ago(lastIngestAt)} />}
-      />
+      <RadarHero live={source === "live"} when={ago(lastIngestAt)} />
 
       {source === "seed" && (
-        <div className="mt-6 rounded-card border border-line bg-warnweak px-4 py-3 text-[13px] leading-relaxed text-warn">
-          <b className="font-medium">These are example rows, not live signals.</b> The nightly
-          pull has not produced data for this view yet. First-seen dates read as a dash because
-          we genuinely do not know them.
-        </div>
+        <p className="mt-4 flex items-start gap-2 rounded-ctl border border-line bg-warnweak px-3 py-2 text-[12.5px] leading-relaxed text-warn">
+          <i className="ph-fill ph-info shrink-0 text-[14px] leading-[1.4]" />
+          These are example rows so you can see the shape. The nightly pull has not
+          produced data for this view yet, so first-seen dates read as a dash.
+        </p>
       )}
 
-      <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4">
-        <Stat label="Signals" value={String(visible.length)} note={source === "live" ? "from the nightly pull" : "sample dataset"} />
-        <Stat label="Rising" value={String(rising)} note="accelerating week on week" />
+      <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4">
+        <Stat
+          label="Signals"
+          value={String(visible.length)}
+          note={source === "live" ? "from the nightly pull" : "sample dataset"}
+          hue="var(--c-accent)"
+        />
+        <Stat label="Rising" value={String(rising)} note="accelerating week on week" hue="var(--c-pos)" />
         <Stat
           label="Median spread"
           value={medianSpread ? `${medianSpread.toFixed(1)}×` : "-"}
           note={medianSpread ? "wholesale to implied retail" : "awaiting supplier prices"}
+          hue="var(--c-1688)"
         />
         <Stat
           label="Longest tracked"
           value={oldest != null ? `${oldest}d` : "-"}
           note={oldest != null ? "since first detection" : "no history yet"}
+          hue="var(--c-taobao)"
         />
       </div>
 
       {niches.length > 1 && (
-        <div className="mt-8 flex flex-wrap items-center gap-1.5">
-          <a
-            href="/radar"
-            className={`rounded-ctl border px-2.5 py-1 font-mono text-[11px] transition-colors ${
-              !niche ? "border-accent bg-accentweak text-accent" : "border-line text-mut hover:border-linestrong hover:text-ink"
-            }`}
-          >
-            All
-          </a>
-          {niches.map((n) => (
-            <a
-              key={n}
-              href={`/radar?niche=${encodeURIComponent(n)}`}
-              className={`rounded-ctl border px-2.5 py-1 font-mono text-[11px] transition-colors ${
-                niche === n ? "border-accent bg-accentweak text-accent" : "border-line text-mut hover:border-linestrong hover:text-ink"
-              }`}
-            >
-              {n}
-            </a>
-          ))}
-          <span data-numeric className="ml-auto hidden font-mono text-[11px] text-faint sm:block">
-            {visible.length} of {rows.length}
-          </span>
+        <div className="mt-8">
+          <NicheFilters niches={niches} active={niche} counts={counts} total={rows.length} />
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-[11px] text-mut">
           Tracking{" "}
           <span data-numeric className="text-ink">
