@@ -7,6 +7,7 @@ import ProcessStepper from "@/components/process-stepper";
 import RadarLive from "@/components/radar-live";
 import HeroAnim from "@/components/hero-anim";
 import PricingToggle from "@/components/pricing-toggle";
+import NicheBento from "@/components/niche-bento";
 
 export const dynamic = "force-dynamic";
 
@@ -46,29 +47,6 @@ const LOGOS: { name: string; url?: string; glyph?: string; hue?: string }[] = [
   { name: "YouTube", url: `https://cdn.brandfetch.io/idVfYwcuQz/theme/dark/logo.svg?${BF}` },
 ];
 
-// "Built for every seller" — niche pills (Mint Studio niches pattern)
-const NICHES_A = [
-  { t: "Pet supplies", ic: "ph-paw-paw" },
-  { t: "Baby and kids", ic: "ph-baby" },
-  { t: "Kitchen", ic: "ph-cooking-pot" },
-  { t: "Beauty", ic: "ph-sparkle" },
-  { t: "Fitness", ic: "ph-barbell" },
-  { t: "Home", ic: "ph-house-line" },
-  { t: "Phone accessories", ic: "ph-device-mobile" },
-  { t: "Outdoor", ic: "ph-mountains" },
-];
-
-const NICHES_B = [
-  { t: "Demand proof", ic: "ph-heart" },
-  { t: "Supplier match", ic: "ph-factory" },
-  { t: "Margin spread", ic: "ph-chart-line-up" },
-  { t: "First-seen date", ic: "ph-calendar" },
-  { t: "Reverse image", ic: "ph-magnifying-glass" },
-  { t: "KOL rate card", ic: "ph-microphone" },
-  { t: "Price history", ic: "ph-trend-up" },
-  { t: "Export-ready", ic: "ph-file-arrow-out" },
-];
-
 // "Stop guessing. Read the room." — credibility stats (Mint Studio intel pattern)
 const CRED_STATS = [
   { num: "4", label: "platforms", color: "var(--c-accent)" },
@@ -96,11 +74,6 @@ function LogoSet() {
     </div>
   ));
 }
-
-const PILL_HUES = [
-  "var(--c-xhs)", "var(--c-1688)", "var(--c-taobao)", "var(--c-douyin)",
-  "var(--c-accent)", "var(--c-xhs)", "var(--c-1688)", "var(--c-taobao)",
-];
 
 export default function Home() {
   return (
@@ -159,35 +132,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 4. BUILT FOR EVERY SELLER — pill niches (Mint Studio "Built for any business" pattern) */}
+        {/* 4. BUILT FOR EVERY SELLER — magnified bento with per-niche signals
+            (21st.dev Magnified Bento pattern, adapted to CTS tokens) */}
         <section className="cts-niches" id="niches">
           <div className="mx-auto max-w-[1160px] px-5 sm:px-8">
-            <div className="cts-nv2-block">
-              <h3 className="cts-nv2-label text-ink">Built for <span className="spectrum-text">every seller.</span></h3>
-              <div className="cts-nv2-grid">
-                {NICHES_A.map((n, i) => (
-                  <span key={n.t} className="cts-nv2-pill" style={{ transitionDelay: `${i * 0.05}s` }}>
-                    <span className="cts-nv2-ic" style={{ background: PILL_HUES[i % 8] }}>
-                      <i className={`ph-fill ${n.ic}`} />
-                    </span>
-                    {n.t}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="cts-nv2-block">
-              <h3 className="cts-nv2-label text-ink">Every signal, <span className="spectrum-text">on tap.</span></h3>
-              <div className="cts-nv2-grid">
-                {NICHES_B.map((n, i) => (
-                  <span key={n.t} className="cts-nv2-pill" style={{ transitionDelay: `${i * 0.05}s` }}>
-                    <span className="cts-nv2-ic" style={{ background: PILL_HUES[(i + 4) % 8] }}>
-                      <i className={`ph-fill ${n.ic}`} />
-                    </span>
-                    {n.t}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <NicheBento />
           </div>
         </section>
 
@@ -474,18 +423,8 @@ export default function Home() {
         .rlv-foot-cta i{color:var(--c-accent);font-size:.85rem}
         @media(prefers-reduced-motion:reduce){.rlv-row-new{animation:none;background:transparent}.rlv-bar-fill,.mr-bar,.wl-delta-num{transition:none!important}.rlv-tick,.rlv-live-dot,.mock-dot,.rlv-stat-pulse{animation:none!important}}
 
-        /* Niches (Built for any business pattern) */
+        /* Niches section wrapper (bento content lives in NicheBento component) */
         .cts-niches{padding:clamp(80px,12vh,120px) 0;background:var(--c-surface);border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line)}
-        .cts-nv2-block{max-width:880px;margin:0 auto 42px;text-align:center;opacity:1;transform:none;transition:opacity .6s,transform .6s cubic-bezier(.22,1,.36,1)}
-        .cts-nv2-block:not(.lit){opacity:0;transform:translateY(18px)}
-        .cts-nv2-block:last-child{margin-bottom:0}
-        .cts-nv2-label{font-family:var(--font-geist-sans);font-weight:800;font-size:clamp(1.7rem,3.8vw,2.7rem);letter-spacing:-.025em;line-height:1.05;margin-bottom:22px}
-        .cts-nv2-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
-        .cts-nv2-pill{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--c-line);border-radius:999px;padding:9px 18px 9px 9px;font-weight:600;font-size:1rem;color:var(--c-ink);box-shadow:0 1px 3px rgba(14,21,36,.06);opacity:1;transform:none;transition:opacity .5s ease,transform .55s cubic-bezier(.34,1.56,.64,1),border-color .25s,box-shadow .25s}
-        .cts-nv2-block:not(.lit) .cts-nv2-pill{opacity:0;transform:translateY(16px) scale(.92)}
-        .cts-nv2-pill:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--c-accent),0 6px 20px rgba(14,21,36,.1)}
-        .cts-nv2-ic{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#fff;font-size:.85rem;flex-shrink:0}
-        @media(max-width:640px){.cts-nv2-pill{font-size:.9rem;padding:8px 15px 8px 8px}.cts-nv2-ic{width:22px;height:22px;font-size:.75rem}}
 
         /* Intelligence (Stop guessing. Read the room. pattern) */
         .cts-intel{padding:clamp(60px,8vh,90px) 0 clamp(60px,8vh,90px)}
@@ -606,8 +545,7 @@ export default function Home() {
           noscript override — React itself needs JS to render at all,
           same as the rest of this app.) */}
       <noscript><style>{`
-        .cts-nv2-block, .cts-pillars { opacity:1 !important; transform:none !important; }
-        .cts-nv2-pill { opacity:1 !important; transform:none !important; }
+        .cts-pillars { opacity:1 !important; transform:none !important; }
       `}</style></noscript>
 
       {/* Scroll-reveal: add .lit class to stages when they enter viewport.
@@ -629,7 +567,7 @@ export default function Home() {
             io.observe(el);
           }
           function scan(){
-            document.querySelectorAll('.cts-nv2-block, .cts-pillars').forEach(reveal);
+            document.querySelectorAll('.cts-pillars').forEach(reveal);
           }
           scan();
           var tries = 0;
