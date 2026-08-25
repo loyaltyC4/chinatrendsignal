@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Shell, Stat } from "@/components/page-shell";
 import { platformStyle } from "@/lib/platform-style";
 import WatchButton from "@/components/watch-button";
+import DashboardWelcome from "@/components/dashboard-welcome";
 import { requireUser } from "@/lib/auth";
 import { getDashboard, planAllowance } from "@/lib/dashboard";
 
@@ -11,15 +12,19 @@ export const metadata: Metadata = { title: "Today" };
 export const dynamic = "force-dynamic";
 
 /*
- * DESIGN READ: dense product dashboard for an operationally-minded seller, with an
- * action-first language. Dials: VARIANCE 5, MOTION 4, DENSITY 7. Low variance
- * because order is what makes a dashboard usable; high density because the data IS
- * the product.
+ * Dashboard "Today" page.
  *
- * The organising idea is a single question: "what changed, and what do I do now?"
- * So the page opens with a diff since the last visit and at most three derived
- * actions, and only then shows the numbers. Metric-first dashboards look busy and
- * tell you nothing to do.
+ * Dials from the taste skill: VARIANCE 5, MOTION 4, DENSITY 7.
+ * The organising idea is one question — "what changed, and what do I do now?" —
+ * so the page opens with a diff since the last visit and at most three derived
+ * actions, then the numbers, then the deep dives.
+ *
+ * The top strip used to be text-only ("Morning, Sam. Since you last looked X
+ * new signals landed…"). DashboardWelcome adds the human touch the user
+ * asked for: a soft gradient band, a small "signal seller" SVG scene, and
+ * two shortcuts (Open the radar / Your watchlist). Everything else on the
+ * page is unchanged — same real Supabase data, same stat/list/watchlist
+ * structure, same server component.
  */
 
 function ago(iso: string | null) {
@@ -53,42 +58,36 @@ export default async function DashboardPage() {
     .sort((a, b) => (b.savesRatio ?? 0) - (a.savesRatio ?? 0))
     .slice(0, 6);
 
-  // Bars are scaled against the strongest row in view, not against a fixed 1.0 ceiling.
-  // With a fixed ceiling every ratio above ~0.95 rendered full-width, so the six bars
-  // were visually identical and the comparison they exist to make was impossible.
+  // Bars scaled against the strongest row in view, not against a fixed 1.0 ceiling.
   const topRatio = Math.max(0.01, ...movers.map((r) => r.savesRatio ?? 0));
+
+  const sinceCopy = d.since.since ? (
+    <>
+      Since you last looked{" "}
+      <span data-numeric className="font-mono font-medium text-ink">{d.since.newSignals}</span> new
+      {d.since.newSignals === 1 ? " signal" : " signals"} landed and{" "}
+      <span data-numeric className="font-mono font-medium text-ink">{d.since.newlyPriced}</span> got a factory price.
+    </>
+  ) : (
+    "Here is the state of your index."
+  );
+
+  const fresh = d.source === "live";
+  const freshnessLabel = fresh ? `Live · pulled ${ago(d.lastRuns[0]?.finishedAt ?? null)}` : "Sample data";
 
   return (
     <Shell active="Today">
-      {/* WHILE YOU WERE AWAY: the retention surface, first thing on the page */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="display-md text-ink">Morning, {first}.</h1>
-          <p className="mt-1.5 text-[14px] leading-relaxed text-body">
-            {d.since.since ? (
-              <>
-                Since you last looked{" "}
-                <span data-numeric className="font-mono font-medium text-ink">{d.since.newSignals}</span> new
-                {d.since.newSignals === 1 ? " signal" : " signals"} landed and{" "}
-                <span data-numeric className="font-mono font-medium text-ink">{d.since.newlyPriced}</span> got a factory price.
-              </>
-            ) : (
-              "Here is the state of your index."
-            )}
-          </p>
-        </div>
-        <span className="flex items-center gap-2 rounded-ctl border border-line bg-surface px-2.5 py-1.5 font-mono text-[11px] text-body">
-          <span
-            className="h-1.5 w-1.5 rounded-full"
-            style={{ background: d.source === "live" ? "var(--c-pos)" : "var(--c-warn)" }}
-          />
-          {d.source === "live" ? `pulled ${ago(d.lastRuns[0]?.finishedAt ?? null)}` : "sample data"}
-        </span>
-      </div>
+      {/* WELCOME HERO: greeting, since-you-were-away, shortcuts, illustration */}
+      <DashboardWelcome
+        firstName={first}
+        sinceCopy={sinceCopy}
+        freshnessLabel={freshnessLabel}
+        fresh={fresh}
+      />
 
       {/* NEXT ACTIONS: derived from state, capped at three */}
       {d.actions.length > 0 && (
-        <section className="mt-7">
+        <section className="mt-8">
           <h2 className="label text-mut">Do this next</h2>
           <div className="mt-3 grid gap-3 lg:grid-cols-3">
             {d.actions.map((a) => {
@@ -97,7 +96,7 @@ export default async function DashboardPage() {
                 <Link
                   key={a.id}
                   href={a.href}
-                  className="group relative overflow-hidden rounded-card border border-line bg-surface p-5 transition-colors hover:border-linestrong"
+                  className="group relative overflow-hidden rounded-card border border-line bg-surface p-5 transition-all hover:border-linestrong hover:-translate-y-0.5 hover:shadow-[0_8px_22px_-12px_rgba(14,21,36,.14)]"
                 >
                   <span className="absolute inset-y-0 left-0 w-[3px]" style={{ background: t.fg }} />
                   <span
@@ -163,7 +162,6 @@ export default async function DashboardPage() {
                         {r.zh ? `${r.zh} · ` : ""}{r.niche}
                       </span>
                     </span>
-                    {/* intent bar: no background track, per the anti-dashboard-clutter rule */}
                     <span className="hidden w-[70px] shrink-0 sm:block" aria-hidden>
                       <span
                         className="block h-[3px] rounded-full"
@@ -189,7 +187,7 @@ export default async function DashboardPage() {
         </section>
 
         <div className="space-y-6">
-          {/* CREDITS: billing entry point, with a real usage meter */}
+          {/* CREDITS */}
           <section className="rounded-card border border-line bg-surface p-5">
             <div className="flex items-baseline justify-between">
               <h2 className="display-sm text-ink">Credits</h2>
@@ -222,7 +220,7 @@ export default async function DashboardPage() {
             </Link>
           </section>
 
-          {/* WATCHLIST with a real, teaching empty state */}
+          {/* WATCHLIST */}
           <section className="rounded-card border border-line bg-surface p-5">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="display-sm text-ink">Your watchlist</h2>
@@ -267,7 +265,7 @@ export default async function DashboardPage() {
             )}
           </section>
 
-          {/* THE MACHINE WORKED: proves value accrued while they were away */}
+          {/* RECENT PULLS */}
           <section className="rounded-card border border-line bg-surface p-5">
             <h2 className="display-sm text-ink">Recent pulls</h2>
             {d.lastRuns.length === 0 ? (
