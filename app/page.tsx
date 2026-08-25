@@ -183,7 +183,7 @@ export default function Home() {
                 {STEPS.map((s, i) => (
                   <div key={s.t} className={`flex items-center gap-6 py-6 ${i > 0 ? "border-t border-line" : ""}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.img} alt={s.alt} className="h-24 w-24 shrink-0 rounded-[14px] object-cover" />
+                    <img src={s.img} alt={s.alt} className="h-28 w-28 shrink-0 rounded-full object-cover" />
                     <div>
                       <p className="text-[15.5px] font-semibold text-ink">{s.t}</p>
                       <p className="mt-1 text-[13.5px] leading-relaxed text-body">{s.d}</p>
@@ -479,8 +479,8 @@ export default function Home() {
         @media(max-width:920px){.cts-bdna-stage{grid-template-columns:1fr;gap:22px}}
         .cts-bdna-conn{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
         @media(max-width:920px){.cts-bdna-conn{display:none}}
-        .cts-bdna-conn path{fill:none;stroke-width:2;stroke-linecap:round;stroke-dasharray:300;stroke-dashoffset:300;transition:stroke-dashoffset 1.3s}
-        .cts-bdna-stage.lit .cts-bdna-conn path{stroke-dashoffset:0}
+        .cts-bdna-conn path{fill:none;stroke-width:2;stroke-linecap:round;stroke-dasharray:300;stroke-dashoffset:0;transition:stroke-dashoffset 1.3s}
+        .cts-bdna-stage:not(.lit) .cts-bdna-conn path{stroke-dashoffset:300}
         .cts-bdna-browser{position:relative;z-index:2;background:#fff;border:1px solid var(--c-line);border-radius:18px;box-shadow:0 26px 60px -26px rgba(14,21,36,.28);overflow:hidden}
         .cts-bdna-bar{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid var(--c-line);background:var(--c-surface-2)}
         .cts-bdna-bar .d{width:10px;height:10px;border-radius:50%}
@@ -489,8 +489,8 @@ export default function Home() {
         .cts-bdna-bar .u i{color:var(--c-accent);font-size:.85rem}
         .cts-bdna-hero-img{position:relative;width:100%;height:auto;display:block;aspect-ratio:1/0.94;object-fit:cover}
         .cts-bdna-out{position:relative;z-index:2;display:flex;flex-direction:column;gap:13px}
-        .cts-bdna-row{display:flex;align-items:center;gap:14px;opacity:0;transform:translateX(14px);transition:opacity .5s,transform .5s cubic-bezier(.22,1,.36,1)}
-        .cts-bdna-stage.lit .cts-bdna-row{opacity:1;transform:none}
+        .cts-bdna-row{display:flex;align-items:center;gap:14px;opacity:1;transform:none;transition:opacity .5s,transform .5s cubic-bezier(.22,1,.36,1)}
+        .cts-bdna-stage:not(.lit) .cts-bdna-row{opacity:0;transform:translateX(14px)}
         .cts-bdna-node{flex-shrink:0;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1.5px solid var(--c-accent);color:var(--c-accent);font-size:1rem;box-shadow:0 4px 12px color-mix(in oklab,var(--c-accent) 18%,transparent)}
         .cts-bdna-rc{flex:1;min-width:0;background:#fff;border:1px solid var(--c-line);border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(14,21,36,.04)}
         .cts-bdna-lbl{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--c-faint);display:block;margin-bottom:8px}
@@ -499,13 +499,13 @@ export default function Home() {
 
         /* Niches (Built for any business pattern) */
         .cts-niches{padding:clamp(80px,12vh,120px) 0;background:var(--c-surface);border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line)}
-        .cts-nv2-block{max-width:880px;margin:0 auto 42px;text-align:center;opacity:0;transform:translateY(18px);transition:opacity .6s,transform .6s cubic-bezier(.22,1,.36,1)}
-        .cts-nv2-block.lit{opacity:1;transform:none}
+        .cts-nv2-block{max-width:880px;margin:0 auto 42px;text-align:center;opacity:1;transform:none;transition:opacity .6s,transform .6s cubic-bezier(.22,1,.36,1)}
+        .cts-nv2-block:not(.lit){opacity:0;transform:translateY(18px)}
         .cts-nv2-block:last-child{margin-bottom:0}
         .cts-nv2-label{font-family:var(--font-geist-sans);font-weight:800;font-size:clamp(1.7rem,3.8vw,2.7rem);letter-spacing:-.025em;line-height:1.05;margin-bottom:22px}
         .cts-nv2-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
-        .cts-nv2-pill{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--c-line);border-radius:999px;padding:9px 18px 9px 9px;font-weight:600;font-size:1rem;color:var(--c-ink);box-shadow:0 1px 3px rgba(14,21,36,.06);opacity:0;transform:translateY(16px) scale(.92);transition:opacity .5s ease,transform .55s cubic-bezier(.34,1.56,.64,1),border-color .25s,box-shadow .25s}
-        .cts-nv2-block.lit .cts-nv2-pill{opacity:1;transform:none}
+        .cts-nv2-pill{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--c-line);border-radius:999px;padding:9px 18px 9px 9px;font-weight:600;font-size:1rem;color:var(--c-ink);box-shadow:0 1px 3px rgba(14,21,36,.06);opacity:1;transform:none;transition:opacity .5s ease,transform .55s cubic-bezier(.34,1.56,.64,1),border-color .25s,box-shadow .25s}
+        .cts-nv2-block:not(.lit) .cts-nv2-pill{opacity:0;transform:translateY(16px) scale(.92)}
         .cts-nv2-pill:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--c-accent),0 6px 20px rgba(14,21,36,.1)}
         .cts-nv2-ic{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#fff;font-size:.85rem;flex-shrink:0}
         @media(max-width:640px){.cts-nv2-pill{font-size:.9rem;padding:8px 15px 8px 8px}.cts-nv2-ic{width:22px;height:22px;font-size:.75rem}}
@@ -529,14 +529,16 @@ export default function Home() {
         .cts-intel-head h2{font-weight:800;font-size:clamp(2.4rem,6vw,4.6rem);letter-spacing:-.035em;line-height:.94}
         .cts-mir-stage{position:relative;height:380px;max-width:1100px;margin:6px auto 0}
         .cts-mir-lines{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
-        .cts-mir-lines path{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1600;stroke-dashoffset:1600;transition:stroke-dashoffset 1.9s}
-        .cts-mir-stage.lit .cts-mir-lines path{stroke-dashoffset:0}
-        .cts-mir-node{fill:#fff;stroke-width:2.5;opacity:0;transition:opacity .5s .9s}
-        .cts-mir-stage.lit .cts-mir-node{opacity:1}
+        .cts-mir-lines path{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1600;stroke-dashoffset:0;transition:stroke-dashoffset 1.9s}
+        .cts-mir-stage:not(.lit) .cts-mir-lines path{stroke-dashoffset:1600}
+        .cts-mir-node{fill:#fff;stroke-width:2.5;opacity:1;transition:opacity .5s .9s}
+        .cts-mir-stage:not(.lit) .cts-mir-node{opacity:0}
         @media (prefers-reduced-motion:reduce){.cts-spark,.cts-mir-lines path{animation:none}.cts-mir-lines path{stroke-dashoffset:0}.cts-mir-node{opacity:1}}
       `}</style>
 
-      {/* Scroll-reveal: add .lit class to stages when they enter viewport */}
+      {/* Scroll-reveal: add .lit class to stages when they enter viewport.
+          Re-scans every 800ms until React hydration completes, so it
+          catches elements rendered after first paint. */}
       <script dangerouslySetInnerHTML={{ __html: `
         (function(){
           var io = new IntersectionObserver(function(entries){
@@ -547,14 +549,19 @@ export default function Home() {
                 io.unobserve(e.target);
               }
             });
-          }, { threshold: 0.25 });
+          }, { threshold: 0.2 });
           function scan(){
-            document.querySelectorAll('.cts-bdna-stage, .cts-nv2-block, .cts-mir-stage').forEach(function(el){
-              io.observe(el);
-            });
+            var els = document.querySelectorAll('.cts-bdna-stage, .cts-nv2-block, .cts-mir-stage');
+            if(els.length === 0){ return; }
+            els.forEach(function(el){ io.observe(el); });
           }
-          if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan);
-          else scan();
+          scan();
+          // Re-scan until React hydrates and the elements exist
+          var tries = 0;
+          var iv = setInterval(function(){
+            scan();
+            if(++tries > 10) clearInterval(iv);
+          }, 400);
         })();
       ` }} />
     </div>
