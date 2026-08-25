@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
  * with CTS content throughout.
  *
  * SECTIONS (top to bottom):
- *  1. Hero + colour logo marquee (existing)
+ *  1. Hero (existing)
+ *  1b. Trust strip: colour logo marquee (own section, below hero)
  *  2. Process: "From signal to listing" — unboxed illustrations per step
  *  3. NEW: "Listing created in seconds" — brand-scan mockup (Mint Studio "Brand DNA" pattern)
  *  4. NEW: "Built for every seller" — pill-tag niches (Mint Studio "Built for any business" pattern)
@@ -140,15 +141,15 @@ export default function Home() {
     <div className="min-h-[100dvh] bg-canvas">
       <MarketingNav />
       <main id="main">
-        {/* 1. HERO + colour logo marquee */}
+        {/* 1. HERO */}
         <section className="spectrum-wash">
           <div className="mx-auto max-w-[1160px] px-5 pt-20 pb-16 text-center sm:px-8 lg:pt-24">
             <h1 className="display-xl mx-auto max-w-[17ch] text-ink">
               See it in China <span className="spectrum-text">before</span> the window shuts.
             </h1>
-            <p className="mx-auto mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-body">
-              We index what Chinese shoppers are saving on Douyin and Xiaohongshu, match it to a
-              factory price on 1688, and log the date we first saw it.
+            <p className="mx-auto mt-5 max-w-[46ch] text-[16.5px] leading-relaxed text-body">
+              We match what&apos;s trending on Douyin and Xiaohongshu to a factory price on 1688,
+              dated the day we saw it.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link href="/login" className="rounded-ctl bg-accentstrong px-5 py-2.5 text-[14px] font-medium text-onaccent transition-opacity hover:opacity-90 active:translate-y-px">
@@ -158,8 +159,14 @@ export default function Home() {
                 See pricing
               </Link>
             </div>
-            <p className="label mt-14 text-mut">One radar, every platform that matters</p>
-            <div className="cts-ticker mt-6" aria-label="Platforms covered">
+          </div>
+        </section>
+
+        {/* 1b. TRUST STRIP — colour logo marquee, its own section below the hero */}
+        <section className="border-b border-line bg-surface2/30">
+          <div className="mx-auto max-w-[1160px] px-5 py-8 text-center sm:px-8">
+            <p className="text-[12.5px] font-medium text-mut">One radar, every platform that matters</p>
+            <div className="cts-ticker mt-5" aria-label="Platforms covered">
               <div className="cts-track">
                 <div className="cts-set"><LogoSet /></div>
                 <div className="cts-set" aria-hidden="true"><LogoSet /></div>
@@ -205,7 +212,7 @@ export default function Home() {
               <h2 className="display-lg text-ink">Your listing, read in seconds.</h2>
               <p className="cts-bdna-sub text-body">
                 We scan the Chinese platforms and extract the demand, supply, and margin signals
-                that make a product worth listing, then stamp every alert with the date we first saw it.
+                worth listing, then stamp every alert with the date we saw it.
               </p>
             </div>
             <div className="cts-bdna-stage" id="scanStage">
@@ -290,7 +297,7 @@ export default function Home() {
                 three, logged with the date we first saw it.
               </p>
             </div>
-            <div className="cts-pillars mx-auto mt-14 flex max-w-[880px] items-stretch gap-3">
+            <div className="cts-pillars mx-auto mt-14 flex max-w-[880px] items-stretch gap-3" id="pillarsStage">
               {PILLARS.map((p) => (
                 <div key={p.top} className="cts-pillar">
                   <div className="cts-track2">
@@ -319,7 +326,7 @@ export default function Home() {
           <div className="mx-auto max-w-[1160px] px-5 sm:px-8">
             {/* Credibility stats row */}
             <div className="cts-cred">
-              <span className="label text-mut"><span className="inline-block h-[7px] w-[7px] rounded-full bg-accent" />Read from the source</span>
+              <span className="label text-mut">Read from the source</span>
               <h3 className="cts-cred-line text-ink">Not just trends. <span className="spectrum-text">It&apos;s signal intelligence.</span></h3>
               <div className="cts-cred-stats">
                 {CRED_STATS.map((s, i) => (
@@ -341,7 +348,6 @@ export default function Home() {
             </div>
             {/* Headline + mirror stage */}
             <div className="cts-intel-head">
-              <span className="label text-mut"><span className="inline-block h-[7px] w-[7px] rounded-full bg-accent" />Read the room</span>
               <h2 className="display-lg text-ink">Stop guessing.<br />Read the room.</h2>
               <p className="text-[15px] text-mut">AI-driven signal analysis for winning products.</p>
             </div>
@@ -449,16 +455,17 @@ export default function Home() {
         .cts-ticker:hover .cts-track{animation-play-state:paused}
         @keyframes cts-marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         .cts-set{display:flex;align-items:center;flex-shrink:0}
-        .cts-logo{display:flex;align-items:center;justify-content:center;height:44px;margin:0 30px;flex-shrink:0}
-        .cts-logo img{max-height:30px;width:auto;object-fit:contain;opacity:.85;transition:opacity .3s}
+        .cts-logo{display:flex;align-items:center;justify-content:center;height:40px;margin:0 26px;flex-shrink:0}
+        .cts-logo img{max-height:26px;width:auto;object-fit:contain;opacity:.85;transition:opacity .3s}
         .cts-ticker:hover .cts-logo img{opacity:1}
-        .cts-glyph{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff}
+        .cts-glyph{width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff}
 
         /* Pillar band */
         .cts-pillars{height:380px}
         .cts-pillar{position:relative;flex:1;display:flex;flex-direction:column}
         .cts-track2{position:relative;flex:1;border-radius:40px;overflow:hidden;background-color:var(--c-surface-2);background-image:linear-gradient(135deg,var(--c-line) 25%,transparent 25.5%,transparent 50%,var(--c-line) 50.5%,var(--c-line) 75%,transparent 75.5%,transparent);background-size:10px 10px}
-        .cts-bar{position:absolute;bottom:0;left:0;right:0;border-radius:40px;background:#b9b4ab;padding:12px;display:flex;align-items:flex-start;justify-content:center;transform-origin:bottom;animation:cts-grow .9s cubic-bezier(.34,1.4,.44,1) both}
+        .cts-bar{position:absolute;bottom:0;left:0;right:0;border-radius:40px;background:#b9b4ab;padding:12px;display:flex;align-items:flex-start;justify-content:center;transform-origin:bottom;transform:scaleY(0);opacity:0}
+        .cts-pillars.lit .cts-bar{animation:cts-grow .9s cubic-bezier(.34,1.4,.44,1) both}
         .cts-bar-lead{background:var(--c-accent);box-shadow:0 30px 60px -25px color-mix(in oklab, var(--c-accent) 55%, transparent)}
         @keyframes cts-grow{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
         .cts-val{display:flex;align-items:center;justify-content:center;height:52px;padding:0 18px;border-radius:999px;background:rgba(255,255,255,.2);font-family:var(--font-mono);font-weight:700;font-size:20px;letter-spacing:-.02em;color:#fff;white-space:nowrap}
@@ -468,7 +475,7 @@ export default function Home() {
         .cts-lbl{margin-top:14px;text-align:center;font-size:13px;color:var(--c-muted);font-weight:500;line-height:1.4}
         .cts-lbl b{display:block;font-size:14px;font-weight:700;color:var(--c-ink)}
         @media(max-width:760px){.cts-pillars{height:260px;gap:6px}.cts-val{font-size:14px;height:40px;padding:0 10px}.cts-track2,.cts-bar{border-radius:24px}.cts-lbl{font-size:10.5px}}
-        @media (prefers-reduced-motion:reduce){.cts-track,.cts-bar{animation:none}}
+        @media (prefers-reduced-motion:reduce){.cts-track{animation:none}.cts-pillars.lit .cts-bar{animation:none}.cts-bar{transform:scaleY(1) !important;opacity:1 !important}}
 
         /* Signal scan (Brand DNA pattern) */
         .cts-bdna{padding:clamp(80px,12vh,120px) 0;position:relative}
@@ -538,11 +545,12 @@ export default function Home() {
 
       {/* No-JS fallback: reveal everything if JavaScript is disabled */}
       <noscript><style>{`
-        .cts-bdna-stage, .cts-nv2-block, .cts-mir-stage { opacity:1 !important; transform:none !important; }
+        .cts-bdna-stage, .cts-nv2-block, .cts-mir-stage, .cts-pillars { opacity:1 !important; transform:none !important; }
         .cts-bdna-row { opacity:1 !important; transform:none !important; }
         .cts-nv2-pill { opacity:1 !important; transform:none !important; }
         .cts-bdna-conn path, .cts-mir-lines path { stroke-dashoffset:0 !important; }
         .cts-mir-node { opacity:1 !important; }
+        .cts-bar { transform:scaleY(1) !important; opacity:1 !important; }
       `}</style></noscript>
 
       {/* Scroll-reveal: add .lit class to stages when they enter viewport.
@@ -564,7 +572,7 @@ export default function Home() {
             io.observe(el);
           }
           function scan(){
-            document.querySelectorAll('.cts-bdna-stage, .cts-nv2-block, .cts-mir-stage').forEach(reveal);
+            document.querySelectorAll('.cts-bdna-stage, .cts-nv2-block, .cts-mir-stage, .cts-pillars').forEach(reveal);
           }
           scan();
           var tries = 0;
