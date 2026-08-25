@@ -1,18 +1,22 @@
 "use client";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import * as Accordion from "@radix-ui/react-accordion";
+import { useState } from "react";
 
-/**
- * Bidcheck runs two FAQ blocks ("Pricing questions" and "Questions you should
- * ask"). Merged into one here, because two accordions on one page is padding.
+/*
+ * FAQ — interactive accordion. Pattern adapted from 21st.dev's
+ * "Interactive Accordion" (jatin-yadav05, id 9602): numbered items,
+ * plus-icon that rotates 45° into an X on open, progressive underline
+ * on hover, spring-eased height transition.
  *
- * Answers are deliberately concrete. Vague FAQ copy is worse than no FAQ.
+ * Built on the existing @radix-ui/react-accordion dep (already installed)
+ * for keyboard nav and a11y, styled against CTS design tokens (Geist,
+ * electric-blue accent, --c-line borders).
+ *
+ * Answers were already concrete in the previous implementation — kept
+ * as-is. Only the presentation is new.
  */
+
 const QUESTIONS: Array<{ q: string; a: string }> = [
   {
     q: "How far ahead of TikTok Shop are you, really?",
@@ -45,18 +49,123 @@ const QUESTIONS: Array<{ q: string; a: string }> = [
 ];
 
 export default function Faq() {
+  const [openValue, setOpenValue] = useState<string>("q0");
+
   return (
-    <Accordion type="single" collapsible className="w-full">
-      {QUESTIONS.map((item, i) => (
-        <AccordionItem key={i} value={`q${i}`}>
-          <AccordionTrigger className="text-left text-[15px] font-medium text-ink hover:no-underline">
-            {item.q}
-          </AccordionTrigger>
-          <AccordionContent className="max-w-[70ch] text-[14px] leading-[1.7] text-body">
-            {item.a}
-          </AccordionContent>
-        </AccordionItem>
-      ))}
-    </Accordion>
+    <div className="faq-i">
+      <Accordion.Root
+        type="single"
+        collapsible
+        value={openValue}
+        onValueChange={(v) => setOpenValue(v)}
+        className="faq-i-list"
+      >
+        {QUESTIONS.map((item, i) => {
+          const num = String(i + 1).padStart(2, "0");
+          const value = `q${i}`;
+          return (
+            <Accordion.Item key={value} value={value} className="faq-i-item">
+              <Accordion.Header asChild>
+                <h3 className="faq-i-h">
+                  <Accordion.Trigger className="faq-i-trigger">
+                    <span className="faq-i-num" aria-hidden="true">{num}</span>
+                    <span className="faq-i-q">{item.q}</span>
+                    <span className="faq-i-plus" aria-hidden="true">
+                      <span className="faq-i-plus-h" />
+                      <span className="faq-i-plus-v" />
+                    </span>
+                  </Accordion.Trigger>
+                </h3>
+              </Accordion.Header>
+              <Accordion.Content className="faq-i-content">
+                <div className="faq-i-a">{item.a}</div>
+              </Accordion.Content>
+            </Accordion.Item>
+          );
+        })}
+      </Accordion.Root>
+
+      <style>{`
+        .faq-i-list{display:flex;flex-direction:column;width:100%}
+        .faq-i-item{border-top:1px solid var(--c-line);transition:border-color .3s}
+        .faq-i-item:last-child{border-bottom:1px solid var(--c-line)}
+        .faq-i-item[data-state="open"]{border-top-color:color-mix(in oklab,var(--c-accent) 30%,transparent)}
+        .faq-i-item[data-state="open"]+.faq-i-item{border-top-color:color-mix(in oklab,var(--c-accent) 30%,transparent)}
+
+        .faq-i-h{margin:0}
+        .faq-i-trigger{
+          all:unset;box-sizing:border-box;cursor:pointer;
+          width:100%;display:grid;grid-template-columns:52px 1fr 32px;gap:14px;
+          align-items:center;padding:22px 4px;
+          font-family:var(--font-geist-sans);
+          color:var(--c-ink);
+          transition:padding .3s cubic-bezier(.22,1,.36,1);
+        }
+        .faq-i-trigger:focus-visible{outline:2px solid var(--c-accent);outline-offset:4px;border-radius:8px}
+
+        .faq-i-num{
+          font-family:var(--font-mono);font-size:.7rem;font-weight:700;
+          letter-spacing:.08em;color:var(--c-muted);
+          transition:color .3s;
+        }
+        .faq-i-item[data-state="open"] .faq-i-num{color:var(--c-accent)}
+
+        .faq-i-q{
+          font-weight:600;font-size:1rem;line-height:1.35;
+          letter-spacing:-.005em;color:var(--c-ink);
+          position:relative;padding-right:12px;
+          background-image:linear-gradient(var(--c-accent),var(--c-accent));
+          background-repeat:no-repeat;
+          background-position:0 100%;
+          background-size:0% 1.5px;
+          transition:background-size .35s cubic-bezier(.22,1,.36,1);
+        }
+        .faq-i-trigger:hover .faq-i-q{background-size:100% 1.5px}
+        .faq-i-item[data-state="open"] .faq-i-q{background-size:100% 1.5px}
+
+        /* plus-to-X icon */
+        .faq-i-plus{
+          position:relative;width:22px;height:22px;flex-shrink:0;justify-self:end;
+          border-radius:50%;
+          transition:background .3s,transform .35s cubic-bezier(.34,1.56,.64,1);
+        }
+        .faq-i-plus-h,.faq-i-plus-v{
+          position:absolute;left:50%;top:50%;background:var(--c-ink);
+          border-radius:2px;transition:transform .35s cubic-bezier(.22,1,.36,1),background .3s;
+        }
+        .faq-i-plus-h{width:12px;height:1.5px;transform:translate(-50%,-50%)}
+        .faq-i-plus-v{width:1.5px;height:12px;transform:translate(-50%,-50%)}
+        .faq-i-trigger:hover .faq-i-plus{background:var(--c-surface-2)}
+        .faq-i-item[data-state="open"] .faq-i-plus{transform:rotate(180deg);background:var(--c-accent)}
+        .faq-i-item[data-state="open"] .faq-i-plus-h,
+        .faq-i-item[data-state="open"] .faq-i-plus-v{background:#fff}
+        .faq-i-item[data-state="open"] .faq-i-plus-v{transform:translate(-50%,-50%) rotate(90deg)}
+
+        /* Content collapse animation using Radix content-height CSS var */
+        .faq-i-content{overflow:hidden}
+        .faq-i-content[data-state="open"]{animation:faq-i-down .38s cubic-bezier(.22,1,.36,1)}
+        .faq-i-content[data-state="closed"]{animation:faq-i-up .28s cubic-bezier(.4,0,1,1)}
+        @keyframes faq-i-down{from{height:0;opacity:0}to{height:var(--radix-accordion-content-height);opacity:1}}
+        @keyframes faq-i-up{from{height:var(--radix-accordion-content-height);opacity:1}to{height:0;opacity:0}}
+
+        .faq-i-a{
+          padding:0 4px 24px 66px;
+          max-width:70ch;
+          font-size:.95rem;line-height:1.65;
+          color:var(--c-muted);
+        }
+        @media(max-width:520px){
+          .faq-i-trigger{grid-template-columns:36px 1fr 24px;gap:10px;padding:18px 2px}
+          .faq-i-num{font-size:.6rem}
+          .faq-i-q{font-size:.94rem}
+          .faq-i-a{padding-left:46px}
+        }
+        @media (prefers-reduced-motion:reduce){
+          .faq-i-content[data-state="open"],.faq-i-content[data-state="closed"]{animation:none}
+          .faq-i-content[data-state="open"]{height:var(--radix-accordion-content-height)}
+          .faq-i-content[data-state="closed"]{height:0}
+        }
+      `}</style>
+    </div>
   );
 }
