@@ -536,32 +536,42 @@ export default function Home() {
         @media (prefers-reduced-motion:reduce){.cts-spark,.cts-mir-lines path{animation:none}.cts-mir-lines path{stroke-dashoffset:0}.cts-mir-node{opacity:1}}
       `}</style>
 
+      {/* No-JS fallback: reveal everything if JavaScript is disabled */}
+      <noscript><style>{`
+        .cts-bdna-stage, .cts-nv2-block, .cts-mir-stage { opacity:1 !important; transform:none !important; }
+        .cts-bdna-row { opacity:1 !important; transform:none !important; }
+        .cts-nv2-pill { opacity:1 !important; transform:none !important; }
+        .cts-bdna-conn path, .cts-mir-lines path { stroke-dashoffset:0 !important; }
+        .cts-mir-node { opacity:1 !important; }
+      `}</style></noscript>
+
       {/* Scroll-reveal: add .lit class to stages when they enter viewport.
-          Re-scans every 800ms until React hydration completes, so it
-          catches elements rendered after first paint. */}
+          Uses a re-scan loop that creates a fresh observer each tick,
+          so it catches elements rendered by React after first paint. */}
       <script dangerouslySetInnerHTML={{ __html: `
         (function(){
-          var io = new IntersectionObserver(function(entries){
-            entries.forEach(function(e){
-              if(e.isIntersecting){
-                e.target.classList.add('lit');
-                e.target.classList.add('live');
-                io.unobserve(e.target);
-              }
-            });
-          }, { threshold: 0.2 });
+          function reveal(el){
+            if(!el || el.classList.contains('lit')) return;
+            var io = new IntersectionObserver(function(entries){
+              entries.forEach(function(e){
+                if(e.isIntersecting){
+                  e.target.classList.add('lit');
+                  e.target.classList.add('live');
+                  io.unobserve(e.target);
+                }
+              });
+            }, { threshold: 0.15 });
+            io.observe(el);
+          }
           function scan(){
-            var els = document.querySelectorAll('.cts-bdna-stage, .cts-nv2-block, .cts-mir-stage');
-            if(els.length === 0){ return; }
-            els.forEach(function(el){ io.observe(el); });
+            document.querySelectorAll('.cts-bdna-stage, .cts-nv2-block, .cts-mir-stage').forEach(reveal);
           }
           scan();
-          // Re-scan until React hydrates and the elements exist
           var tries = 0;
           var iv = setInterval(function(){
             scan();
-            if(++tries > 10) clearInterval(iv);
-          }, 400);
+            if(++tries >= 12) clearInterval(iv);
+          }, 350);
         })();
       ` }} />
     </div>
