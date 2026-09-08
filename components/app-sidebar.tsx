@@ -22,7 +22,15 @@ const GROUPS: Array<{ label: string; items: Array<{ href: string; name: string; 
     items: [
       { href: "/dashboard", name: "Today", hue: "var(--c-accent)" },
       { href: "/radar", name: "Radar", hue: "var(--c-xhs)" },
+      { href: "/radar2", name: "Radar desk", hue: "var(--c-xhs)" },
       { href: "/watchlist", name: "Watchlist", hue: "var(--c-douyin)" },
+    ],
+  },
+  {
+    label: "Sell",
+    items: [
+      { href: "/studio", name: "Listing studio", hue: "var(--c-1688)" },
+      { href: "/queue", name: "Post queue", hue: "var(--c-taobao)" },
     ],
   },
   {
