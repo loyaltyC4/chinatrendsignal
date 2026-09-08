@@ -20,6 +20,8 @@ import { platformStyle } from "@/lib/platform-style";
  */
 
 export type DeskRow = RadarRow & {
+  /** Days since first detection, mapped from daysTracked for the feed's "first seen" cell. */
+  firstSeenDays: number | null;
   /** Derived suggested list price, AUD. null when no wholesale price. */
   listAud: number | null;
   /** Derived est. net per unit after landed cost + fee drag. null unpriced. */
