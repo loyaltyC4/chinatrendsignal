@@ -7,10 +7,12 @@ import type { ListingDraft } from "@/lib/listing";
 /**
  * Post queue — drafts waiting for the seller's click.
  *
- * Every row carries its honesty checks (CN scan, tag count, factory price) so the
- * review is a glance, not a dig. "Post" hands the draft to the Etsy route; TikTok
- * and Shopify stay as copy-only toggles because those channels are not wired —
- * the toggle renders disabled rather than pretending it posts there.
+ * Every row carries its honesty checks (margin viability, CN scan, factory price,
+ * Etsy saturation, IP flag) so the review is a glance, not a dig. A row that fails
+ * the 30% margin floor or carries an IP flag can't be posted — the button says why
+ * instead of letting a bad listing through. "Post" hands the draft to the Etsy
+ * route; TikTok and Shopify stay as copy-only toggles because those channels are
+ * not wired — rendered disabled rather than pretending they post.
  */
 
 export default function QueueClient({ drafts }: { drafts: ListingDraft[] }) {
@@ -18,7 +20,8 @@ export default function QueueClient({ drafts }: { drafts: ListingDraft[] }) {
   const [busy, setBusy] = useState<string | null>(null);
 
   const live = drafts.filter((d) => !posted.has(d.signalId));
-  const net = live.reduce((s, d) => s + (d.etsy?.estNetAud ?? 0), 0);
+  const net = live.reduce((s, d) => s + (d.etsy?.margin.estNetAud ?? 0), 0);
+  const viableCount = live.filter((d) => d.etsy?.margin.viable && !d.ipRisk).length;
 
   async function post(d: ListingDraft) {
     setBusy(d.signalId);
@@ -28,8 +31,6 @@ export default function QueueClient({ drafts }: { drafts: ListingDraft[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ signalId: d.signalId }),
       });
-      // Whether the channel is live or still scaffolded, the draft leaves the
-      // review list either way — the route reports which.
       if (res.ok) setPosted((s) => new Set(s).add(d.signalId));
     } finally {
       setBusy(null);
@@ -57,7 +58,7 @@ export default function QueueClient({ drafts }: { drafts: ListingDraft[] }) {
         <span className="label text-mut">Review &amp; post</span>
         <span className="font-mono text-[10.5px] text-faint">nothing publishes without your click</span>
         <div className="ml-auto flex items-center gap-2 font-mono text-[10.5px] text-mut">
-          <span data-numeric className="text-ink">{live.length}</span> ready ·
+          <span data-numeric className="text-ink">{viableCount}</span> viable ·
           <span data-numeric className="text-pos"> A${net.toFixed(2)}</span> est. net combined
         </div>
       </div>
@@ -65,9 +66,12 @@ export default function QueueClient({ drafts }: { drafts: ListingDraft[] }) {
       <ul>
         {drafts.map((d) => {
           const done = posted.has(d.signalId);
+          const m = d.etsy?.margin;
+          const blocked = !m || !m.viable || d.ipRisk;
+          const blockReason = d.ipRisk ? "IP flag" : !m ? "no price" : !m.viable ? "low margin" : null;
           return (
             <li key={d.signalId} className="border-b border-line last:border-b-0">
-              <div className="grid grid-cols-[minmax(0,1.8fr)_.8fr_.9fr_.9fr] items-center gap-4 px-4 py-3.5 transition-colors hover:bg-surface2 max-lg:grid-cols-[minmax(0,1.6fr)_1fr] sm:px-5">
+              <div className="grid grid-cols-[minmax(0,1.8fr)_.8fr_.95fr_.95fr] items-center gap-4 px-4 py-3.5 transition-colors hover:bg-surface2 max-lg:grid-cols-[minmax(0,1.6fr)_1fr] sm:px-5">
                 <div className="min-w-0">
                   <Link href={`/studio?id=${encodeURIComponent(d.signalId)}`} className="truncate text-[13.5px] font-medium tracking-[-.01em] text-ink hover:underline">
                     {d.product}
@@ -76,21 +80,28 @@ export default function QueueClient({ drafts }: { drafts: ListingDraft[] }) {
                     <Check ok label="CN scan clean" />
                     <Check ok label={`${d.etsy?.tags.length ?? 0}/13 tags`} />
                     <Check ok={d.priced} label={d.priced ? "factory priced" : "no price"} />
-                    <span className="font-mono text-[9.5px] text-faint">· first seen {d.firstSeenDays == null ? "—" : `${d.firstSeenDays}d`}</span>
+                    {d.saturation.count != null ? (
+                      <Check ok={d.saturationVerdict === "open"} label={`Etsy ${d.saturation.count}`} />
+                    ) : (
+                      <Check ok={false} muted label="sat. n/a" />
+                    )}
+                    {d.ipRisk && <Check ok={false} label="IP flag" />}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 max-lg:hidden">
                   <span className="flex h-6 w-6 items-center justify-center rounded-ctl bg-ink font-mono text-[8px] font-semibold text-onaccent" title="Etsy — wired">E</span>
-                  <span className="flex h-6 w-6 cursor-not-allowed items-center justify-center rounded-ctl border border-line text-[8px] text-faint" title="TikTok Shop — copy only, not wired">T</span>
+                  <span className="flex h-6 w-6 cursor-not-allowed items-center justify-center rounded-ctl border border-line text-[8px] text-faint" title="TikTok Shop — content kit, not wired">T</span>
                   <span className="flex h-6 w-6 cursor-not-allowed items-center justify-center rounded-ctl border border-line text-[8px] text-faint" title="Shopify — copy only, not wired">S</span>
                 </div>
 
                 <div className="text-right max-lg:hidden">
-                  {d.etsy ? (
+                  {m ? (
                     <>
-                      <span data-numeric className="font-mono text-[13px] font-medium text-ink">A${d.etsy.listPriceAud.toFixed(2)}</span>
-                      <span className="block font-mono text-[9.5px] text-pos">net A${d.etsy.estNetAud.toFixed(2)}</span>
+                      <span data-numeric className="font-mono text-[13px] font-medium text-ink">A${m.listPriceAud.toFixed(2)}</span>
+                      <span className="block font-mono text-[9.5px]" style={{ color: m.viable ? "var(--c-pos)" : "var(--c-neg)" }}>
+                        {Math.round(m.marginPct * 100)}% · net A${m.estNetAud.toFixed(2)}
+                      </span>
                     </>
                   ) : (
                     <span className="font-mono text-[11px] text-faint">—</span>
@@ -103,12 +114,13 @@ export default function QueueClient({ drafts }: { drafts: ListingDraft[] }) {
                   </Link>
                   <button
                     onClick={() => post(d)}
-                    disabled={done || busy === d.signalId || !d.etsy}
+                    disabled={done || busy === d.signalId || blocked}
+                    title={blockReason ? `Blocked: ${blockReason}` : "Post this draft to Etsy"}
                     className={`rounded-ctl px-3 py-1.5 font-mono text-[10.5px] font-medium transition-all ${
-                      done ? "cursor-default bg-posweak text-pos" : d.etsy ? "bg-accentstrong text-onaccent hover:opacity-90 active:scale-[.97]" : "cursor-not-allowed bg-surface2 text-faint"
+                      done ? "cursor-default bg-posweak text-pos" : blocked ? "cursor-not-allowed bg-surface2 text-faint" : "bg-accentstrong text-onaccent hover:opacity-90 active:scale-[.97]"
                     }`}
                   >
-                    {done ? "✓ Posted" : busy === d.signalId ? "Posting…" : "Post"}
+                    {done ? "✓ Posted" : busy === d.signalId ? "Posting…" : blocked ? (blockReason ?? "Blocked") : "Post"}
                   </button>
                 </div>
               </div>
@@ -120,10 +132,15 @@ export default function QueueClient({ drafts }: { drafts: ListingDraft[] }) {
   );
 }
 
-function Check({ ok, label }: { ok: boolean; label: string }) {
+function Check({ ok, muted, label }: { ok: boolean; muted?: boolean; label: string }) {
+  const style = ok
+    ? { background: "var(--c-pos-weak)", color: "var(--c-pos)" }
+    : muted
+      ? { background: "var(--c-surface-2)", color: "var(--c-faint)" }
+      : { background: "var(--c-warn-weak)", color: "var(--c-warn)" };
   return (
-    <span className="inline-flex items-center gap-1 rounded-chip px-1.5 py-px font-mono text-[9.5px]" style={{ background: ok ? "var(--c-pos-weak)" : "var(--c-warn-weak)", color: ok ? "var(--c-pos)" : "var(--c-warn)" }}>
-      {ok ? "✓" : "!"} {label}
+    <span className="inline-flex items-center gap-1 rounded-chip px-1.5 py-px font-mono text-[9.5px]" style={style}>
+      {ok ? "✓" : muted ? "·" : "!"} {label}
     </span>
   );
 }

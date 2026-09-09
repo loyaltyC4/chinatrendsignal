@@ -31,6 +31,7 @@ const GROUPS: Array<{ label: string; items: Array<{ href: string; name: string; 
     items: [
       { href: "/studio", name: "Listing studio", hue: "var(--c-1688)" },
       { href: "/queue", name: "Post queue", hue: "var(--c-taobao)" },
+      { href: "/integrations", name: "Integrations", hue: "var(--c-accent)" },
     ],
   },
   {
