@@ -232,7 +232,7 @@ export function buildListing(row: RadarRow, sat: Saturation = { count: null, top
       }
     : null;
 
-  if (etsy) {
+  if (etsy && m) {
     etsy.titleChars = etsy.title.length;
     etsy.titleWords = etsy.title.trim().split(/\s+/).length;
     const draft = { ...base, etsy } as ListingDraft;
