@@ -406,7 +406,7 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
     if (isJevConfigured() && !stoppedEarly && timeLeft() > 12_000) {
       const { data: triageQueue } = await db
         .from("signals")
-        .select("id, title, product_term, platform, likes, saves, comments, shares")
+        .select("id, title, product_term, product_en, platform, likes, saves, comments, shares")
         .eq("is_product", true)
         .is("supplier_checked_at", null)
         .is("jev_route", null)
