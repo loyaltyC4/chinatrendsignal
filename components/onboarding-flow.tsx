@@ -36,6 +36,8 @@ type Goal =
   | "readzh"
   | "other";
 
+type Channel = "etsy" | "tiktok" | "shopify" | "amazon" | "none";
+
 type Answers = {
   name: string;
   country: string;
@@ -43,6 +45,7 @@ type Answers = {
   otherGoal: string;
   businessType: string;
   revenue: string;
+  channels: Set<Channel>;
   teamSize: string;
   role: string;
   otherRole: string;
@@ -163,11 +166,20 @@ const STEP_META = [
   { title: "Say hi, we're glad you're here.", sub: "This is how you'll appear inside China Trend Signal." },
   { title: "What are you here to do?", sub: "You can pick multiple — we'll shape the dashboard around it." },
   { title: "Tell us about your business.", sub: "So we can tailor the numbers to your scale." },
+  { title: "Where do you sell?", sub: "Pick every channel — the listing studio tailors copy to each one." },
   { title: "About your team.", sub: "We'll adapt collaboration features and the UI density." },
   { title: "How did you find us?", sub: "So we can invest in the channels that reach real sellers." },
 ];
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
+
+const CHANNELS: Array<{ id: Channel; icon: string; hue: string; title: string; sub: string }> = [
+  { id: "etsy", icon: "ph-storefront", hue: "var(--c-taobao)", title: "Etsy", sub: "Full drafts post to your shop for review" },
+  { id: "tiktok", icon: "ph-music-note", hue: "var(--c-douyin)", title: "TikTok Shop", sub: "Trend-anchored content kits in your voice" },
+  { id: "shopify", icon: "ph-shopping-cart", hue: "var(--c-1688)", title: "Shopify", sub: "Brand-voice copy for your own storefront" },
+  { id: "amazon", icon: "ph-package", hue: "var(--c-accent)", title: "Amazon / other", sub: "Copy you can adapt to any marketplace" },
+  { id: "none", icon: "ph-sparkle", hue: "var(--c-xhs)", title: "Not selling yet", sub: "Exploring — we'll get you launch-ready" },
+];
 
 export default function OnboardingFlow() {
   const router = useRouter();
@@ -181,6 +193,7 @@ export default function OnboardingFlow() {
     otherGoal: "",
     businessType: "",
     revenue: "",
+    channels: new Set(),
     teamSize: "",
     role: "",
     otherRole: "",
@@ -196,8 +209,10 @@ export default function OnboardingFlow() {
       case 2:
         return ans.businessType.length > 0 && ans.revenue.length > 0;
       case 3:
-        return ans.teamSize.length > 0 && ans.role.length > 0;
+        return ans.channels.size > 0;
       case 4:
+        return ans.teamSize.length > 0 && ans.role.length > 0;
+      case 5:
         return ans.attribution.length > 0;
       default:
         return false;
@@ -210,8 +225,11 @@ export default function OnboardingFlow() {
       setStep((s) => s + 1);
     } else {
       setSubmitting(true);
-      // Persistence is a future pass. Just route to the dashboard.
-      setTimeout(() => router.push("/dashboard"), 350);
+      // Land where the seller can act immediately: Etsy sellers go to the desk
+      // (one step from a posted draft); everyone else lands on the desk too, with
+      // integrations one click away. Persistence of answers is a future pass.
+      const dest = ans.channels.has("etsy") ? "/radar2" : "/radar2";
+      setTimeout(() => router.push(dest), 350);
     }
   }
   function back() {
@@ -272,8 +290,9 @@ export default function OnboardingFlow() {
               {step === 0 && <StepProfile ans={ans} setAns={setAns} />}
               {step === 1 && <StepGoals ans={ans} setAns={setAns} />}
               {step === 2 && <StepBusiness ans={ans} setAns={setAns} />}
-              {step === 3 && <StepTeam ans={ans} setAns={setAns} />}
-              {step === 4 && <StepAttribution ans={ans} setAns={setAns} />}
+              {step === 3 && <StepChannels ans={ans} setAns={setAns} />}
+              {step === 4 && <StepTeam ans={ans} setAns={setAns} />}
+              {step === 5 && <StepAttribution ans={ans} setAns={setAns} />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -489,6 +508,56 @@ function StepBusiness({
   );
 }
 
+function StepChannels({
+  ans,
+  setAns,
+}: {
+  ans: Answers;
+  setAns: React.Dispatch<React.SetStateAction<Answers>>;
+}) {
+  function toggle(id: Channel) {
+    setAns((a) => {
+      const channels = new Set(a.channels);
+      if (id === "none") {
+        // "Not selling yet" is exclusive — picking it clears the rest.
+        return { ...a, channels: channels.has("none") ? new Set() : new Set(["none"] as Channel[]) };
+      }
+      channels.delete("none");
+      if (channels.has(id)) channels.delete(id);
+      else channels.add(id);
+      return { ...a, channels };
+    });
+  }
+  return (
+    <div className="ob-block">
+      <span className="ob-block-lbl">Every channel you sell on — the studio writes for each.</span>
+      <div className="ob-grid ob-grid-2">
+        {CHANNELS.map((c) => {
+          const on = ans.channels.has(c.id);
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => toggle(c.id)}
+              aria-pressed={on}
+              className={`ob-card ${on ? "on" : ""}`}
+              style={{ ["--card-hue" as string]: c.hue }}
+            >
+              <span className="ob-card-ic" style={{ background: c.hue }}>
+                <i className={`ph-fill ${c.icon}`} />
+              </span>
+              <span className="ob-card-body">
+                <span className="ob-card-title">{c.title}</span>
+                <span className="ob-card-sub">{c.sub}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function StepTeam({
   ans,
   setAns,
@@ -589,8 +658,9 @@ function SellerScene({ step, reduce }: { step: number; reduce: boolean }) {
     "var(--c-1688)",
     "var(--c-taobao)",
     "var(--c-douyin)",
+    "var(--c-accent)",
   ];
-  const primary = hues[step];
+  const primary = hues[step] ?? hues[0];
   return (
     <motion.svg
       viewBox="0 0 240 120"

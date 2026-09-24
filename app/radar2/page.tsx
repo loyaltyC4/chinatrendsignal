@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Shell, Stat } from "@/components/page-shell";
 import RadarDesk, { type DeskRow } from "@/components/radar-desk";
 import { getRadar } from "@/lib/signals";
+import { getSaturation } from "@/lib/saturation";
+import { buildListing, buildShortlist } from "@/lib/listing";
 import { requireUser } from "@/lib/auth";
 import { platformStyle } from "@/lib/platform-style";
 
@@ -12,20 +15,16 @@ export const dynamic = "force-dynamic";
 /**
  * /radar2 — the Direction A command surface.
  *
- * A seller-facing densification of the marketing radar: the same live signal rows,
- * but with the two numbers a listing decision actually turns on (Etsy saturation
- * and estimated net margin) lifted into the feed, a four-stat strip across the top,
- * and a right rail carrying signal volume, today's digest, and the pre-list checks.
+ * The seller-facing densification of the marketing radar. On top of the live
+ * signal rows it lifts the two numbers a listing decision turns on (measured Etsy
+ * saturation + true-margin est. net), a four-stat strip, and a right rail with
+ * the curated weekly shortlist (the "focus" workflow — a small set of
+ * high-conviction bets instead of a firehose), today's digest, and the pre-list
+ * checks.
  *
- * Data honesty is preserved exactly as the radar states it: saturation reads as a
- * dash because there is no marketplace-competition feed yet, and net margin is
- * derived + labelled est. Nothing here is fabricated.
+ * Honesty is preserved exactly as the radar states it: saturation is a measured
+ * count or a dash, and every money figure is derived + labelled est.
  */
-
-const CNY_TO_AUD = 0.213;
-const FEE_PCT = 0.117;
-const FEE_FLAT_AUD = 0.38;
-const MARKUP = 3.4;
 
 function ago(iso: string | null) {
   if (!iso) return "never";
@@ -40,40 +39,41 @@ export default async function RadarDeskPage() {
   const { user, error } = await requireUser();
   if (error || !user) redirect("/login?next=%2Fradar2");
 
-  const { source, rows, lastIngestAt } = await getRadar(40);
+  const { source, rows, lastIngestAt } = await getRadar(60);
+
+  // One batched saturation read for every term in view.
+  const terms = rows.flatMap((r) => [r.product, r.zh]).filter(Boolean);
+  const sats = await getSaturation(terms);
 
   const desk: DeskRow[] = rows.map((r) => {
-    const priced = r.wholesaleCny > 0;
-    const landed = priced ? r.wholesaleCny * CNY_TO_AUD : null;
-    const list = priced ? landed! * MARKUP : null;
-    const net = priced ? list! - landed! - list! * FEE_PCT - FEE_FLAT_AUD : null;
+    const d = buildListing(
+      r,
+      sats.get(r.product.trim().toLowerCase()) ?? sats.get(r.zh.trim().toLowerCase()) ?? undefined,
+    );
     return {
       ...r,
-      firstSeenDays: r.daysTracked ?? null,
-      listAud: list != null ? Math.round(list * 100) / 100 : null,
-      estNetAud: net != null ? Math.round(net * 100) / 100 : null,
-      saturation: null, // no competition feed yet — rendered as a dash, honestly
+      firstSeenDays: d.firstSeenDays,
+      saturation: d.saturation,
+      saturationVerdict: d.saturationVerdict,
+      estNetAud: d.etsy?.margin.estNetAud ?? null,
+      marginPct: d.etsy?.margin.marginPct ?? null,
+      listAud: d.etsy?.margin.listPriceAud ?? null,
     };
   });
 
+  const shortlist = buildShortlist(rows, sats, 4);
+
   const rising = desk.filter((r) => r.stage === "Rising").length;
   const pricedCount = desk.filter((r) => r.estNetAud != null).length;
-  const velocities = desk.map((r) => r.velocityPct).filter((v) => v > 0);
-  const medianVel = velocities.length
-    ? [...velocities].sort((a, b) => a - b)[Math.floor(velocities.length / 2)]
-    : 0;
+  const viableCount = desk.filter((r) => (r.marginPct ?? 0) >= 0.3).length;
+  const measured = desk.filter((r) => r.saturation.count != null).length;
+  const openField = desk.filter((r) => r.saturationVerdict === "open").length;
   const pipelineNet = desk.reduce((s, r) => s + (r.estNetAud ?? 0), 0);
-
-  // signal-volume sparkline: aggregate the real observation history we already have
-  const sparks = desk.map((r) => r.spark).filter((s) => s.length >= 2);
-  const volSeries = sparks.length ? sparks[0] : [];
-  const volMax = Math.max(1, ...volSeries);
 
   const top = desk[0];
 
   return (
     <Shell active="Radar desk">
-      {/* freshness + honesty banner */}
       {source === "seed" && (
         <p className="mb-5 flex items-start gap-2 rounded-ctl border border-line bg-warnweak px-3 py-2 text-[12.5px] leading-relaxed text-warn">
           These are example rows so you can see the shape. The nightly pull has not produced data for this view yet.
@@ -90,13 +90,12 @@ export default async function RadarDeskPage() {
           <h1 className="mt-3 display-lg text-ink">
             The window is <span className="spectrum-text">open.</span>
           </h1>
-          <p className="mt-2 max-w-[60ch] text-[14px] leading-relaxed text-body">
+          <p className="mt-2 max-w-[62ch] text-[14px] leading-relaxed text-body">
             {top ? (
               <>
-                <span className="font-medium text-ink">{top.product}</span> is moving on{" "}
-                {top.sources.join(" + ")} — first seen{" "}
-                {top.firstSeenDays == null ? "recently" : top.firstSeenDays === 0 ? "today" : `${top.firstSeenDays}d ago`}.
-                {" "}{pricedCount} signals carry a factory price and a sellable draft.
+                <span className="font-medium text-ink">{top.product}</span> is moving on {top.sources.join(" + ")} — first seen{" "}
+                {top.firstSeenDays == null ? "recently" : top.firstSeenDays === 0 ? "today" : `${top.firstSeenDays}d ago`}.{" "}
+                {viableCount} signals clear the 30% margin floor after Etsy's full fee stack.
               </>
             ) : (
               "Signals land here as the nightly pull finds them."
@@ -105,10 +104,12 @@ export default async function RadarDeskPage() {
         </div>
         <div className="flex items-center gap-2 rounded-card border border-line bg-surface px-4 py-3">
           <div>
-            <p className="label text-mut">Median velocity</p>
-            <p data-numeric className="mt-0.5 font-mono text-[18px] font-medium text-warn">+{medianVel}%</p>
+            <p className="label text-mut">Saturation measured</p>
+            <p data-numeric className="mt-0.5 font-mono text-[18px] font-medium text-ink">
+              {measured}<span className="text-[12px] text-faint"> / {desk.length}</span>
+            </p>
           </div>
-          <span className="ml-2 rounded-chip bg-warnweak px-2 py-1 font-mono text-[10px] text-warn">week on week</span>
+          <span className="ml-2 rounded-chip bg-accentweak px-2 py-1 font-mono text-[10px] text-accent">{openField} open</span>
         </div>
       </div>
 
@@ -116,7 +117,7 @@ export default async function RadarDeskPage() {
       <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4">
         <Stat label="Signals in view" value={String(desk.length)} note={source === "live" ? "from the nightly pull" : "sample dataset"} hue="var(--c-accent)" />
         <Stat label="Rising" value={String(rising)} note="accelerating week on week" hue="var(--c-pos)" />
-        <Stat label="Priced drafts" value={String(pricedCount)} note="carry a real factory cost" hue="var(--c-1688)" />
+        <Stat label="Margin-viable" value={String(viableCount)} note={`of ${pricedCount} priced · ≥30% net`} hue="var(--c-1688)" />
         <Stat
           label="Pipeline est. net"
           value={pipelineNet > 0 ? `A$${Math.round(pipelineNet).toLocaleString()}` : "—"}
@@ -130,34 +131,39 @@ export default async function RadarDeskPage() {
         <RadarDesk rows={desk} />
 
         <aside className="space-y-5">
-          {/* signal volume */}
-          <div className="rounded-card border border-line bg-surface p-4">
-            <div className="flex items-baseline justify-between">
-              <p className="label text-mut">Signal volume</p>
-              <p data-numeric className="font-mono text-[12px] text-faint">
-                <span className="text-[15px] font-medium text-ink">{volSeries.length ? volSeries[volSeries.length - 1] : 0}</span> · obs
-              </p>
+          {/* weekly shortlist — the focus workflow */}
+          <div className="rounded-card border border-line bg-surface">
+            <div className="border-b border-line px-4 py-3">
+              <p className="text-[13.5px] font-medium text-ink">This week's best bets</p>
+              <p className="mt-0.5 text-[11px] text-faint">margin × low saturation × fresh window · capped on purpose</p>
             </div>
-            {volSeries.length >= 2 ? (
-              <svg viewBox="0 0 300 90" className="mt-3 h-[90px] w-full" preserveAspectRatio="none" aria-hidden>
-                <defs>
-                  <linearGradient id="rv-g" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="var(--c-accent)" />
-                    <stop offset="100%" stopColor="var(--c-xhs)" />
-                  </linearGradient>
-                </defs>
-                <polyline
-                  fill="none"
-                  stroke="url(#rv-g)"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  points={volSeries.map((v, i) => `${(i / (volSeries.length - 1)) * 300},${84 - (v / volMax) * 74}`).join(" ")}
-                />
-              </svg>
+            {shortlist.length ? (
+              shortlist.map((d, i) => {
+                const p = platformStyle(d.sources[0] ?? "");
+                return (
+                  <Link
+                    key={d.signalId}
+                    href={`/studio?id=${encodeURIComponent(d.signalId)}`}
+                    className="flex gap-3 border-b border-line px-4 py-3 transition-colors last:border-b-0 hover:bg-surface2"
+                  >
+                    <span className="mt-0.5 font-mono text-[10px] font-semibold text-faint">0{i + 1}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12.5px] font-medium text-ink">{d.product}</p>
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <span className="rounded-chip px-1.5 py-px font-mono text-[9px]" style={{ background: p.bg, color: p.fg }}>{p.label}</span>
+                        <span data-numeric className="font-mono text-[10px] text-pos">A${d.etsy!.margin.estNetAud.toFixed(2)}</span>
+                        <span className="font-mono text-[9px] text-faint">{Math.round(d.etsy!.margin.marginPct * 100)}% · est.</span>
+                      </div>
+                    </div>
+                    <span className="self-center font-mono text-[11px] text-faint">
+                      {d.firstSeenDays == null ? "—" : d.firstSeenDays === 0 ? "today" : `${d.firstSeenDays}d`}
+                    </span>
+                  </Link>
+                );
+              })
             ) : (
-              <p className="mt-4 font-mono text-[11px] text-faint">Not enough history yet — we draw nothing rather than fake a trend.</p>
+              <p className="px-4 py-6 font-mono text-[11px] text-faint">No margin-clean picks yet — the nightly pull will refill this.</p>
             )}
-            <p className="mt-2 font-mono text-[10px] text-faint">Engagement on the top signal, oldest to latest observation.</p>
           </div>
 
           {/* digest */}
@@ -179,8 +185,8 @@ export default async function RadarDeskPage() {
               },
               {
                 src: "Etsy",
-                title: "Marketplace saturation",
-                sub: "not measured yet — shown as a dash, not a guessed count",
+                title: top && top.saturation.count != null ? `${top.saturation.count.toLocaleString()} live listings` : "Saturation not measured",
+                sub: top && top.saturation.count != null ? "measured count on the destination platform" : "the scraper hasn't covered this term — shown as a dash",
               },
             ].map((d, i) => {
               const p = platformStyle(d.src);
@@ -207,7 +213,7 @@ export default async function RadarDeskPage() {
               {[
                 { k: "First-seen dated", v: "always", ok: true },
                 { k: "Factory price", v: top && top.wholesaleCny > 0 ? "verified" : "pending", ok: !!(top && top.wholesaleCny > 0) },
-                { k: "Etsy saturation", v: "not measured", ok: false },
+                { k: "Etsy saturation", v: top && top.saturation.count != null ? `${top.saturation.count}` : "not measured", ok: !!(top && top.saturation.count != null) },
               ].map((r) => (
                 <div key={r.k} className="flex items-center justify-between border-b border-line pb-2 text-[12px] last:border-b-0 last:pb-0">
                   <span className="text-mut">{r.k}</span>
@@ -215,12 +221,14 @@ export default async function RadarDeskPage() {
                 </div>
               ))}
             </div>
-            <a
-              href={top ? `/studio?id=${encodeURIComponent(top.id)}` : "/studio"}
-              className="mt-3 block rounded-ctl bg-accentweak px-3 py-2 text-center text-[12px] font-medium text-accentstrong transition-colors hover:bg-accentstrong hover:text-onaccent"
-            >
-              Open the top signal in the studio
-            </a>
+            {top && (
+              <Link
+                href={`/studio?id=${encodeURIComponent(top.id)}`}
+                className="mt-3 block rounded-ctl bg-accentweak px-3 py-2 text-center text-[12px] font-medium text-accentstrong transition-colors hover:bg-accentstrong hover:text-onaccent"
+              >
+                Open the top signal in the studio
+              </Link>
+            )}
           </div>
         </aside>
       </div>

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Shell } from "@/components/page-shell";
 import StudioClient from "@/components/studio-client";
 import { getRadar } from "@/lib/signals";
+import { getSaturation } from "@/lib/saturation";
 import { buildListing } from "@/lib/listing";
 import { requireUser } from "@/lib/auth";
 
@@ -13,17 +14,18 @@ export const dynamic = "force-dynamic";
 /**
  * /studio?id=<signalId> — turn one radar signal into platform-specific listings.
  *
- * Server side we resolve the signal from the live read layer and build the
- * derived listing draft (pricing, Etsy copy, channel copy) via lib/listing. The
- * interactive editing lives in StudioClient. An unknown id falls back to the
- * top priced signal rather than dead-ending the user.
+ * Server side we resolve the signal from the live read layer, pull its cached Etsy
+ * saturation, and build the derived listing draft (true-margin math, compliant
+ * Etsy copy, channel content kit) via lib/listing. The interactive editing lives in
+ * StudioClient. An unknown id falls back to the top priced signal rather than
+ * dead-ending the user.
  */
 export default async function StudioPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const { user, error } = await requireUser();
   if (error || !user) redirect("/login?next=%2Fstudio");
 
   const { id } = await searchParams;
-  const { rows } = await getRadar(60);
+  const { rows } = await getRadar(80);
 
   const target = rows.find((r) => r.id === id) ?? rows.find((r) => r.wholesaleCny > 0) ?? rows[0];
 
@@ -44,7 +46,11 @@ export default async function StudioPage({ searchParams }: { searchParams: Promi
     );
   }
 
-  const draft = buildListing(target);
+  const sats = await getSaturation([target.product, target.zh]);
+  const draft = buildListing(
+    target,
+    sats.get(target.product.trim().toLowerCase()) ?? sats.get(target.zh.trim().toLowerCase()) ?? undefined,
+  );
 
   return (
     <Shell active="Listing studio">
