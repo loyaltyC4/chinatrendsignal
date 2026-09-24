@@ -55,11 +55,15 @@ export function isAmazonConfigured(): boolean {
 
 /* ------------------------------ crypto ------------------------------ */
 
-async function hmacSha256(key: CryptoKey | Uint8Array, data: string): Promise<Uint8Array> {
-  const k = key instanceof CryptoKey
-    ? key
-    : await crypto.subtle.importKey("raw", key as Uint8Array, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(data));
+async function hmacSha256(key: Uint8Array, data: string): Promise<Uint8Array> {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    key as unknown as ArrayBuffer,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(data));
   return new Uint8Array(sig);
 }
 
