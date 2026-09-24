@@ -271,7 +271,7 @@ export async function getWatchlistDetail(userId: string): Promise<WatchDetail[]>
         movementPct,
       } satisfies WatchDetail;
     })
-    .filter((r): r is WatchDetail => r !== null);
+    .filter((r): r is Exclude<typeof r, null> => r !== null) as unknown as WatchDetail[];
 }
 
 /**
