@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { RadarRow } from "@/lib/signals";
 import type { Saturation } from "@/lib/saturation";
+import type { AmazonEvidence } from "@/lib/evidence";
+import JevChip from "@/components/jev-chip";
 import { platformStyle } from "@/lib/platform-style";
 
 /**
@@ -30,6 +32,13 @@ export type DeskRow = RadarRow & {
   marginPct: number | null;
   /** Derived suggested list price, AUD. null unpriced. */
   listAud: number | null;
+  /** Jev opinion fields (opinions, not measurements). null = untriaged. */
+  jevRoute?: "auto" | "review" | "kill" | "unverified" | null;
+  jevFirstMarket?: string | null;
+  jevListableProbability?: number | null;
+  jevMarketConfidence?: number | null;
+  /** Amazon US catalog evidence from the nightly cron. null resultCount = not measured. */
+  amazon: AmazonEvidence;
 };
 
 const STAGE_DOT: Record<string, string> = {
@@ -63,12 +72,32 @@ function SatPill({ r }: { r: DeskRow }) {
   );
 }
 
+function AmazonCell({ a }: { a: AmazonEvidence }) {
+  if (a.resultCount == null) {
+    return (
+      <span className="font-mono text-[11px] text-faint" title="Not measured yet — the evidence cron hasn't covered this term">
+        —
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-baseline gap-1.5">
+      <span data-numeric className="font-mono text-[12.5px] font-medium text-ink">{a.resultCount}</span>
+      {a.medianTopPriceUsd != null && (
+        <span data-numeric className="font-mono text-[10px] text-faint" title="Median of the top-5 catalog prices (USD)">
+          ${a.medianTopPriceUsd.toFixed(2)}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function Row({ r }: { r: DeskRow }) {
   const dot = STAGE_DOT[r.stage] ?? STAGE_DOT.Rising;
   const viable = r.marginPct != null && r.marginPct >= 0.3;
   return (
     <li className="border-b border-line last:border-b-0">
-      <div className="grid grid-cols-[minmax(0,2.2fr)_.9fr_.7fr_.95fr_.95fr_.7fr] items-center gap-3 px-4 py-3 transition-colors hover:bg-surface2 max-lg:grid-cols-[minmax(0,2fr)_.9fr_.8fr] sm:px-5">
+      <div className="grid grid-cols-[minmax(0,1.9fr)_.8fr_.65fr_.8fr_.8fr_.8fr_.7fr] items-center gap-3 px-4 py-3 transition-colors hover:bg-surface2 max-lg:grid-cols-[minmax(0,2fr)_.9fr_.8fr] sm:px-5">
         <div className="min-w-0">
           <div className="flex items-baseline gap-2">
             <Link href={`/studio?id=${encodeURIComponent(r.id)}`} className="truncate text-[13.5px] font-medium tracking-[-.01em] text-ink hover:underline">
@@ -86,6 +115,14 @@ function Row({ r }: { r: DeskRow }) {
               );
             })}
             <span className="truncate text-[11px] text-mut">{r.niche}</span>
+            {r.jevRoute && (
+              <JevChip
+                route={r.jevRoute}
+                probability={r.jevListableProbability}
+                firstMarket={r.jevFirstMarket}
+                confidence={r.jevMarketConfidence}
+              />
+            )}
           </div>
         </div>
 
@@ -101,6 +138,10 @@ function Row({ r }: { r: DeskRow }) {
         </div>
 
         <div className="text-right max-lg:hidden"><SatPill r={r} /></div>
+
+        <div className="text-right max-lg:hidden">
+          <AmazonCell a={r.amazon} />
+        </div>
 
         <div className="text-right max-lg:hidden">
           {r.estNetAud != null ? (
@@ -159,11 +200,12 @@ export default function RadarDesk({ rows }: { rows: DeskRow[] }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,2.2fr)_.9fr_.7fr_.95fr_.95fr_.7fr] items-center gap-3 border-b border-line px-4 py-2.5 max-lg:hidden sm:px-5">
+      <div className="grid grid-cols-[minmax(0,1.9fr)_.8fr_.65fr_.8fr_.8fr_.8fr_.7fr] items-center gap-3 border-b border-line px-4 py-2.5 max-lg:hidden sm:px-5">
         <span className="label text-mut">Signal</span>
         <span className="label text-mut">Stage</span>
         <span className="label text-right text-mut">Velocity</span>
         <span className="label text-right text-mut">Etsy sat.</span>
+        <span className="label text-right text-mut">Amazon</span>
         <span className="label text-right text-mut">Est. net</span>
         <span className="label text-right text-mut">First seen</span>
       </div>
@@ -182,7 +224,9 @@ export default function RadarDesk({ rows }: { rows: DeskRow[] }) {
         <span className="font-mono">Est. net</span> is derived from the measured 1688 price after Etsy's full fee
         stack (listing + transaction + processing + Offsite Ads contingency), marked <span className="font-mono">est.</span>{" "}
         <span className="font-mono">Etsy sat.</span> is a measured count from the cache, or a dash where the scraper
-        hasn't covered the term — we don't invent it.
+        hasn't covered the term — we don't invent it. <span className="font-mono">Amazon</span> is a measured US catalog
+        count + median top-5 price from the nightly SP-API evidence pull, same rule. The <span className="font-mono">jev</span> chip
+        is an evaluation model's opinion with stated confidence — routing advice, not a measurement.
       </p>
     </div>
   );

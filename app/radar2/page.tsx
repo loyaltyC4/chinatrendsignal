@@ -5,6 +5,7 @@ import { Shell, Stat } from "@/components/page-shell";
 import RadarDesk, { type DeskRow } from "@/components/radar-desk";
 import { getRadar } from "@/lib/signals";
 import { getSaturation } from "@/lib/saturation";
+import { getAmazonEvidence, emptyAmazonEvidence } from "@/lib/evidence";
 import { buildListing, buildShortlist } from "@/lib/listing";
 import { requireUser } from "@/lib/auth";
 import { platformStyle } from "@/lib/platform-style";
@@ -44,6 +45,8 @@ export default async function RadarDeskPage() {
   // One batched saturation read for every term in view.
   const terms = rows.flatMap((r) => [r.product, r.zh]).filter(Boolean);
   const sats = await getSaturation(terms);
+  // One batched evidence read for every row in view — the desk never calls SP-API inline.
+  const evidence = await getAmazonEvidence(rows.map((r) => r.id));
 
   const desk: DeskRow[] = rows.map((r) => {
     const d = buildListing(
@@ -58,6 +61,7 @@ export default async function RadarDeskPage() {
       estNetAud: d.etsy?.margin.estNetAud ?? null,
       marginPct: d.etsy?.margin.marginPct ?? null,
       listAud: d.etsy?.margin.listPriceAud ?? null,
+      amazon: evidence.get(r.id) ?? emptyAmazonEvidence(),
     };
   });
 

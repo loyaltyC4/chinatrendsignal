@@ -25,6 +25,12 @@ export type RadarRow = Signal & {
    *  when we have fewer than two observations — we draw nothing rather than
    *  faking a trend line from a single point. */
   spark: number[];
+  /** Jev opinion fields (an evaluation model's view with stated confidence —
+   *  never merged into measured columns). null = not triaged yet. */
+  jevRoute: "auto" | "review" | "kill" | "unverified" | null;
+  jevFirstMarket: string | null;
+  jevListableProbability: number | null;
+  jevMarketConfidence: number | null;
 };
 
 export type RadarPayload = {
@@ -55,7 +61,7 @@ export async function getRadar(limit = 40): Promise<RadarPayload> {
     const db = supabaseAdmin();
     const { data, error } = await db
       .from("signals")
-      .select("id, title, title_en, product_term, product_en, is_product, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, comments, shares, engagement_total, velocity_pct, intent_score, wholesale_cny, stage")
+      .select("id, title, title_en, product_term, product_en, is_product, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, comments, shares, engagement_total, velocity_pct, intent_score, wholesale_cny, stage, jev_route, jev_first_market, jev_listable_probability, jev_market_confidence")
       // Drop rows extraction confirmed are not products. Rows not yet assessed
       // (is_product null) stay visible so the radar is not empty while the
       // extraction backlog clears.
@@ -118,6 +124,10 @@ export async function getRadar(limit = 40): Promise<RadarPayload> {
         savesRatio: likes > 0 ? Math.round((saves / likes) * 100) / 100 : null,
         isProduct: r.is_product ?? null,
         spark: (sparks.get(r.id) ?? []).slice(-14),
+        jevRoute: (r.jev_route as RadarRow["jevRoute"]) ?? null,
+        jevFirstMarket: r.jev_first_market ?? null,
+        jevListableProbability: r.jev_listable_probability != null ? Number(r.jev_listable_probability) : null,
+        jevMarketConfidence: r.jev_market_confidence != null ? Number(r.jev_market_confidence) : null,
       };
     });
 
@@ -167,6 +177,10 @@ function seedPayload(): RadarPayload {
       savesRatio: null,
       isProduct: null,
       spark: [],
+      jevRoute: null,
+      jevFirstMarket: null,
+      jevListableProbability: null,
+      jevMarketConfidence: null,
     })),
     lastIngestAt: null,
     lastIngestStatus: null,
