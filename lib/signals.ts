@@ -206,7 +206,7 @@ export async function getWatchlistDetail(userId: string): Promise<WatchDetail[]>
   const [{ data: signals }, { data: obs }] = await Promise.all([
     db
       .from("signals")
-      .select("id, title, title_en, product_term, product_en, is_product, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, velocity_pct, intent_score, wholesale_cny, stage")
+      .select("id, title, title_en, product_term, product_en, is_product, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, velocity_pct, intent_score, wholesale_cny, stage, jev_route, jev_first_market, jev_listable_probability, jev_market_confidence")
       .in("id", ids),
     db
       .from("signal_observations")
@@ -262,12 +262,16 @@ export async function getWatchlistDetail(userId: string): Promise<WatchDetail[]>
         savesRatio: likes > 0 ? Math.round((saves / likes) * 100) / 100 : null,
         isProduct: r.is_product ?? null,
         spark: points.map((p) => p.total).slice(-14),
+        jevRoute: (r.jev_route as RadarRow["jevRoute"]) ?? null,
+        jevFirstMarket: r.jev_first_market ?? null,
+        jevListableProbability: r.jev_listable_probability != null ? Number(r.jev_listable_probability) : null,
+        jevMarketConfidence: r.jev_market_confidence != null ? Number(r.jev_market_confidence) : null,
         savedAt: s.created_at,
         note: s.note ?? null,
         movementPct,
       } satisfies WatchDetail;
     })
-    .filter((r): r is WatchDetail => r !== null);
+    .filter((r): r is Exclude<typeof r, null> => r !== null) as unknown as WatchDetail[];
 }
 
 /**
@@ -287,7 +291,7 @@ export async function getSignal(id: string): Promise<WatchDetail | null> {
   const [{ data: r }, { data: obs }] = await Promise.all([
     db
       .from("signals")
-      .select("id, title, title_en, product_term, product_en, is_product, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, comments, shares, velocity_pct, intent_score, wholesale_cny, supplier_url, stage")
+      .select("id, title, title_en, product_term, product_en, is_product, niche, platform, source_url, first_detected_at, last_seen_at, likes, saves, comments, shares, velocity_pct, intent_score, wholesale_cny, supplier_url, stage, jev_route, jev_first_market, jev_listable_probability, jev_market_confidence")
       .eq("id", id)
       .maybeSingle(),
     db
@@ -322,6 +326,10 @@ export async function getSignal(id: string): Promise<WatchDetail | null> {
     savesRatio: likes > 0 ? Math.round((saves / likes) * 100) / 100 : null,
     isProduct: r.is_product ?? null,
     spark: points.slice(-14),
+    jevRoute: (r.jev_route as RadarRow["jevRoute"]) ?? null,
+    jevFirstMarket: r.jev_first_market ?? null,
+    jevListableProbability: r.jev_listable_probability != null ? Number(r.jev_listable_probability) : null,
+    jevMarketConfidence: r.jev_market_confidence != null ? Number(r.jev_market_confidence) : null,
     savedAt: "",
     note: null,
     movementPct: null,

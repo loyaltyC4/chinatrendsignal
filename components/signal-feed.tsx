@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import SupplierMatchButton from "@/components/supplier-match-button";
+import JevChip from "@/components/jev-chip";
 import WatchButton from "@/components/watch-button";
 import { platformStyle } from "@/lib/platform-style";
 
@@ -41,6 +42,11 @@ export type Signal = {
   savesRatio?: number | null;
   /** Engagement over time, oldest first. Empty when we lack real history. */
   spark?: number[];
+  /** Jev opinion fields — optional because seed rows never carry them. */
+  jevRoute?: "auto" | "review" | "kill" | "unverified" | null;
+  jevFirstMarket?: string | null;
+  jevListableProbability?: number | null;
+  jevMarketConfidence?: number | null;
 };
 
 const STAGE: Record<Signal["stage"], string> = {
@@ -212,6 +218,14 @@ function SignalRow({ s, watching }: { s: Signal; watching: boolean }) {
             <span className="truncate text-[11.5px] text-mut">{s.niche}</span>
             <WatchButton signalId={s.id} initial={watching} label={false} />
             <SupplierMatchButton keyword={s.zh || s.product} />
+            {s.jevRoute && (
+              <JevChip
+                route={s.jevRoute}
+                probability={s.jevListableProbability}
+                firstMarket={s.jevFirstMarket}
+                confidence={s.jevMarketConfidence}
+              />
+            )}
           </div>
         </div>
 

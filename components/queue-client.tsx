@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { ListingDraft } from "@/lib/listing";
+import JevChip from "@/components/jev-chip";
 
 /**
  * Post queue — drafts waiting for the seller's click.
@@ -86,6 +87,16 @@ export default function QueueClient({ drafts }: { drafts: ListingDraft[] }) {
                       <Check ok={false} muted label="sat. n/a" />
                     )}
                     {d.ipRisk && <Check ok={false} label="IP flag" />}
+                    {d.jevRoute && (
+                      <JevChip
+                        route={d.jevRoute}
+                        probability={d.jevListableProbability}
+                        firstMarket={d.jevFirstMarket}
+                      />
+                    )}
+                    {d.jevFirstMarket && d.jevFirstMarket !== "etsy" && d.jevRoute !== "kill" && (
+                      <Check ok={false} muted label={`Jev prefers ${d.jevFirstMarket}`} />
+                    )}
                   </div>
                 </div>
 

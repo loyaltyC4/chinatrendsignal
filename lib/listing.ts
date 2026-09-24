@@ -66,6 +66,10 @@ export type ListingDraft = {
   shopify: { title: string; description: string; metaTitle: string; metaDescription: string };
   /** Compliance / IP flag from trend heuristics. true = review before listing. */
   ipRisk: boolean;
+  /** Jev opinion (an evaluation model's view, not a measurement). null = untriaged. */
+  jevRoute: "auto" | "review" | "kill" | "unverified" | null;
+  jevFirstMarket: string | null;
+  jevListableProbability: number | null;
 };
 
 /* ── margin constants (AUD). Stated once, surfaced as estimates. ── */
@@ -208,6 +212,9 @@ export function buildListing(row: RadarRow, sat: Saturation = { count: null, top
     saturation: sat,
     saturationVerdict: saturationVerdict(sat),
     ipRisk: detectIpRisk(product, row.zh),
+    jevRoute: row.jevRoute ?? null,
+    jevFirstMarket: row.jevFirstMarket ?? null,
+    jevListableProbability: row.jevListableProbability ?? null,
     tiktok: {
       hooks: buildHooks(product, sources),
       caption: `The ${product.toLowerCase()} that ${sources[0] ?? "China social"} is obsessed with. Still early on this one. Link in bio.`,
