@@ -7,7 +7,7 @@ import {
   xhsNoteSearch,
   wholesaleSearch,
   type JustOneResult,
-} from "@/lib/justone";
+} from "@/lib/justone";import { isJevConfigured, triageSignal } from "@/lib/jev";
 
 /**
  * Nightly ingest.
@@ -392,6 +392,62 @@ export async function runIngest(opts: { budgetMs?: number; maxCalls?: number } =
         }
         // On failure extracted_at stays null, so the batch is retried next run
         // rather than being written off as "not a product".
+      }
+    }
+
+    /* ---- Stage A3: Jev triage ----
+     * A cheap evaluation-model opinion between extraction and the first PAID
+     * supplier call. A row that Jev rates "not a listable product" or obvious
+     * noise gets supplier_checked_at stamped WITHOUT a 1688 call, so the
+     * expensive stage never spends on it. Verdicts are stored as jev_* opinion
+     * fields and never merged into measured columns. Fail-closed: when the
+     * gateway key is absent the stage is skipped, not faked. */
+
+    if (isJevConfigured() && !stoppedEarly && timeLeft() > 12_000) {
+      const { data: triageQueue } = await db
+        .from("signals")
+        .select("id, title, product_term, platform, likes, saves, comments, shares")
+        .eq("is_product", true)
+        .is("supplier_checked_at", null)
+        .is("jev_route", null)
+        .order("saves", { ascending: false, nullsFirst: false })
+        .limit(Number(process.env.MAX_JEV_TRIAGE_PER_RUN || 6));
+
+      for (const sig of triageQueue ?? []) {
+        if (timeLeft() < 10_000) break;
+        const t = await triageSignal({
+          id: sig.id,
+          title: sig.title,
+          productTerm: sig.product_term,
+          productEn: sig.product_en ?? null,
+          platform: sig.platform,
+          likes: sig.likes ?? null,
+          saves: sig.saves ?? null,
+          comments: sig.comments ?? null,
+          shares: sig.shares ?? null,
+        });
+        endpoints.push({
+          endpoint: "jev:triage",
+          label: `Jev triage · ${sig.id.slice(0, 8)}`,
+          ok: true,
+          code: 0,
+          ms: t.ms,
+        });
+        await db
+          .from("signals")
+          .update({
+            jev_route: t.route,
+            jev_listable_probability: t.listableProbability,
+            jev_demand_score: t.demandScore,
+            jev_novelty_score: t.noveltyScore,
+            jev_first_market: t.firstMarket,
+            jev_market_confidence: t.marketConfidence,
+            jev_checked_at: new Date().toISOString(),
+            // A killed row skips the paid supplier stage entirely; a review or
+            // auto row still gets its 1688 lookup so the human sees real prices.
+            supplier_checked_at: t.route === "kill" ? new Date().toISOString() : null,
+          })
+          .eq("id", sig.id);
       }
     }
 
